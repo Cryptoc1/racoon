@@ -1,25 +1,14 @@
 ﻿using System.Text.RegularExpressions;
-using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.Csgo
+namespace CoreRCON.Parsers.Csgo;
+
+public record TeamSide(string CurrentSide, string Team) : IParseable<TeamSide>;
+
+public sealed class TeamSideParser : RegexParser<TeamSide>
 {
-    public class TeamSide : IParseable
+    public TeamSideParser() : base(@"Team playing ""(?<side>.+?)"": (?<team>.*)")
     {
-        public string Team { get; set; }
-        public string CurentSide { get; set; }
     }
 
-    public class TeamSideParser : DefaultParser<TeamSide>
-    {
-        public override string Pattern { get; } = @"Team playing ""(?<side>.+?)"": (?<team>.*)";
-
-        public override TeamSide Load(GroupCollection groups)
-        {
-            return new TeamSide
-            {
-                Team = groups["team"].Value,
-                CurentSide = groups["side"].Value
-            };
-        }
-    }
+    protected override TeamSide Load(GroupCollection groups) => new(groups["side"].Value, groups["team"].Value);
 }

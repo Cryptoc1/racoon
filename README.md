@@ -21,11 +21,11 @@ using System.Net;
 // ...
 
 // Connect to a server
-var rcon = new RCON(IPAddress.Parse("10.0.0.1"), 27015, "secret-password");
+using var rcon = new RCON(IPAddress.Parse("10.0.0.1"), 27015, "secret-password");
 await rcon.ConnectAsync();
 
 // Send a simple command and retrive response as string
-string respnose = await rcon.SendCommandAsync("echo hi");
+string response = await rcon.SendCommandAsync("echo hi");
 
 // Send "status" and try to parse the response
 Status status = await rcon.SendCommandAsync<Status>("status");
@@ -39,17 +39,25 @@ This assumes you have been added to the server's `logaddress` list.  You do not 
 The port specified must be open (check your router settings) and unused.  Pass a value of `0` to use the first-available port.  Access `log.ResolvedPort` to see which port it chose.
 
 Finally, pass an array (or list of params) of `IPEndPoints` to express which servers you would like to receive logs from.  This is because any server can send your server logs if they know which port you are listening on, as it's just UDP.
-```cs
+
+```csharp
 using CoreRCON;
 using CoreRCON.Parsers.Standard;
-// ...
 
 // Listen on port 50000 for log packets coming from 10.0.0.1:27015
-var log = new LogReceiver(50000, new IPEndPoint(IPAddress.Parse("10.0.0.1"), 27015));
-log.Listen<ChatMessage>(chat =>
+using var log = new LogReceiver(50000, new IPEndPoint(IPAddress.Parse("10.0.0.1"), 27015));
+
+var chat = await WaitForChat(log);
+Console.WriteLine(chat);
+
+static async Task<ChatMessage> WaitForChat(LogReceiver log)
 {
-	Console.WriteLine($"Chat message: {chat.Player.Name} said {chat.Message} on channel {chat.Channel}");
-});
+    var completion = new TaskCompletionSource<ChatMessage>();
+    using(log.Listen<ChatMessage>(completion.SetResult))
+    {
+        return await completion.Task;
+    }
+}
 ```
 
 ## Troubleshooting

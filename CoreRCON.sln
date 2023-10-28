@@ -7,20 +7,24 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{600446C9-F80
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreRCON", "src\CoreRCON\CoreRCON.csproj", "{CDFCA475-8F06-424B-9CF7-7D1E5D21F6D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "src\RconTest\Tests.csproj", "{988E8596-4A7A-4641-8ED1-7F2E5BB523E8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RconShell", "src\RconShell\RconShell.csproj", "{D5734C9E-0823-40E2-B214-FC063ACB1A95}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D1CAF9D2-A3F6-404F-89C7-F834BBAC68F5}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 		LICENSE = LICENSE
 		logo.png = logo.png
 		mkdocs.yml = mkdocs.yml
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreRCON.Tool", "src\CoreRCON.Tool\CoreRCON.Tool.csproj", "{25330D67-76AE-40C1-A48F-FC70AE3BA4DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AE21F06E-7F32-4871-9142-BE7C7BCB9024}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreRCON.Tests", "test\CoreRCON\CoreRCON.Tests.csproj", "{80C1E09A-E65A-4D81-840E-F17712FD004F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,22 +36,22 @@ Global
 		{CDFCA475-8F06-424B-9CF7-7D1E5D21F6D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDFCA475-8F06-424B-9CF7-7D1E5D21F6D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDFCA475-8F06-424B-9CF7-7D1E5D21F6D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{988E8596-4A7A-4641-8ED1-7F2E5BB523E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{988E8596-4A7A-4641-8ED1-7F2E5BB523E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{988E8596-4A7A-4641-8ED1-7F2E5BB523E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{988E8596-4A7A-4641-8ED1-7F2E5BB523E8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5734C9E-0823-40E2-B214-FC063ACB1A95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5734C9E-0823-40E2-B214-FC063ACB1A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5734C9E-0823-40E2-B214-FC063ACB1A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5734C9E-0823-40E2-B214-FC063ACB1A95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25330D67-76AE-40C1-A48F-FC70AE3BA4DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25330D67-76AE-40C1-A48F-FC70AE3BA4DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25330D67-76AE-40C1-A48F-FC70AE3BA4DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25330D67-76AE-40C1-A48F-FC70AE3BA4DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80C1E09A-E65A-4D81-840E-F17712FD004F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80C1E09A-E65A-4D81-840E-F17712FD004F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80C1E09A-E65A-4D81-840E-F17712FD004F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80C1E09A-E65A-4D81-840E-F17712FD004F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CDFCA475-8F06-424B-9CF7-7D1E5D21F6D5} = {600446C9-F807-4B19-807C-DDDE625CE558}
-		{988E8596-4A7A-4641-8ED1-7F2E5BB523E8} = {600446C9-F807-4B19-807C-DDDE625CE558}
-		{D5734C9E-0823-40E2-B214-FC063ACB1A95} = {600446C9-F807-4B19-807C-DDDE625CE558}
+		{25330D67-76AE-40C1-A48F-FC70AE3BA4DE} = {600446C9-F807-4B19-807C-DDDE625CE558}
+		{80C1E09A-E65A-4D81-840E-F17712FD004F} = {AE21F06E-7F32-4871-9142-BE7C7BCB9024}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD0B7DCD-27AE-4933-8A40-612FF87C36DB}

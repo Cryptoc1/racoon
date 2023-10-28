@@ -1,138 +1,107 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace CoreRCON.Parsers.Standard
+namespace CoreRCON.Parsers.Standard;
+
+public record Status(
+    byte Bots,
+    ulong CommunityID,
+    string Hostname,
+    byte Humans,
+    string? LocalHost,
+    string Map,
+    byte MaxPlayers,
+    string? PublicHost,
+    string? SteamID,
+    string Version,
+    bool Hibernating,
+    string? Type
+) : IParseable<Status>
 {
-    public class Status : IParseable
+    [Obsolete("No longer part of status message")]
+    public string? Account { get; }
+
+    [Obsolete("No longer part of status message")]
+    public string[]? Tags { get; }
+}
+
+public sealed class StatusParser : IParser<Status>
+{
+    public bool IsMatch(string input) => input.Contains("hostname: ") || input.Contains("hibernating");
+
+    public Status Parse(string input)
     {
-        [Obsolete("No longer part of status message")]
-        public string Account { get; set; }
-        public byte Bots { get; set; }
-        public ulong CommunityID { get; set; }
-        public string Hostname { get; set; }
-        public byte Humans { get; set; }
-        public string LocalHost { get; set; }
-        public string Map { get; set; }
-        public byte MaxPlayers { get; set; }
-        public string PublicHost { get; set; }
-        public string SteamID { get; set; }
-        [Obsolete("No longer part of status message")]
-        public string[] Tags { get; set; }
-        public string Version { get; set; }
-        public bool Hibernating { get; set; }
-        public string Type { get; set; }
-    }
+        var groups = input.Split('\n')
+            .Select(value => value.Split(':'))
+            .Where(value => value.Length > 1 && !string.IsNullOrEmpty(value[0].Trim()) && !string.IsNullOrEmpty(value[1].Trim()))
+            .ToDictionary(
+                value => value[0].Trim(),
+                value => string.Join(":", value.ToList().Skip(1)).Trim()
+            );
 
-    public class StatusParser : IParser<Status>
-    {
-        public string Pattern => throw new System.NotImplementedException();
+        groups.TryGetValue("hostname", out var hostname);
 
-        public bool IsMatch(string input)
+        string? steamId = null;
+        if (groups.TryGetValue("version", out var version))
         {
-            return input.Contains("hostname: ") | input.Contains("hibernating");
-
+            var match = Regex.Match(version, ".*(\\[.*\\]).*");
+            if (match.Success)
+            {
+                steamId = match.Groups[1].Value;
+            }
         }
 
-        public Status Load(GroupCollection groups)
+        groups.TryGetValue("map", out var map);
+        groups.TryGetValue("type", out var type);
+
+        byte humans = 0, bots = 0, maxPlayers = 0;
+        bool hibernating = false;
+
+        if (groups.TryGetValue("players", out var players))
         {
-            throw new System.NotImplementedException();
-        }
-
-        public Status Parse(string input)
-        {
-            Dictionary<string, string> groups = input.Split('\n')
-                .Select(x => x.Split(':'))
-                .Where(x => x.Length > 1 && !string.IsNullOrEmpty(x[0].Trim())
-                    && !string.IsNullOrEmpty(x[1].Trim()))
-                .ToDictionary(x => x[0].Trim(), x => string.Join(":", x.ToList().Skip(1)).Trim());
-
-            string hostname = null;
-            groups.TryGetValue("hostname", out hostname);
-            string version = null;
-            groups.TryGetValue("version", out version);
-            string steamId = null;
-            if (version != null)
+            var match = Regex.Match(players, "(\\d+) humans, (\\d+) bots\\((\\d+)/\\d+ max\\) (\\(not hibernating\\))?.*");
+            if (match.Success)
             {
-                Match match = Regex.Match(version, ".*(\\[.*\\]).*");
-                if (match.Success)
+                bots = byte.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+                humans = byte.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                maxPlayers = byte.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+                if (match.Groups[4].Success)
                 {
-                    steamId = match.Groups[1].Value;
-                }
-            }
-            string map = null;
-            groups.TryGetValue("map", out map);
-            string type = null;
-            groups.TryGetValue("type", out type);
-
-            byte players = 0, bots = 0, maxPlayers = 0;
-            string playerString = null;
-            bool hibernating = false;
-            groups.TryGetValue("players", out playerString);
-            if (playerString != null)
-            {
-                Match oldMatch = Regex.Match(playerString, "(\\d+) \\((\\d+) max\\).*"); //Old pattern
-                Match newMatch = Regex.Match(playerString, "(\\d+) humans, (\\d+) bots\\((\\d+)/\\d+ max\\) (\\(not hibernating\\))?.*");
-                if (oldMatch.Success)
-                {
-                    players = byte.Parse(oldMatch.Groups[1].Value);
-                    maxPlayers = byte.Parse(oldMatch.Groups[2].Value);
-                    bots = 0;
-                }
-                else if (newMatch.Success)
-                {
-                    players = byte.Parse(newMatch.Groups[1].Value);
-                    maxPlayers = byte.Parse(newMatch.Groups[3].Value);
-                    bots = byte.Parse(newMatch.Groups[2].Value);
-                    if (newMatch.Groups[4].Success)
-                    {
-                        hibernating = !newMatch.Groups[4].Value.Contains("not hibernating");
-                    }
-                }
-            }
-            else
-            {
-                hibernating = input.Contains("hibernating") && !input.Contains("not hibernating");
-            }
-
-            string localIp = null, publicIp = null, ipString = null;
-            groups.TryGetValue("udp / ip", out ipString);
-            if (ipString != null)
-            {
-                Match oldMatch = Regex.Match(ipString, "((\\d|\\.)+:(\\d|\\.)+)\\(public ip: (.*)\\).*"); //Old pattern
-                Match newMatch = Regex.Match(ipString, "\\((.*:.*)\\)\\s+\\(public ip: (.*)\\).*");
-                if (oldMatch.Success)
-                {
-                    localIp = oldMatch.Groups[1].Value;
-                    publicIp = oldMatch.Groups[4].Value;
-                }
-                else if (newMatch.Success)
-                {
-                    localIp = newMatch.Groups[1].Value;
-                    publicIp = newMatch.Groups[2].Value;
+                    hibernating = !match.Groups[4].Value.Contains("not hibernating");
                 }
             }
 
-            return new Status()
+            // NOTE: legacy formatting
+            else if ((match = Regex.Match(players, "(\\d+) \\((\\d+) max\\).*")).Success)
             {
-                Hostname = hostname,
-                Version = version,
-                SteamID = steamId,
-                Map = map,
-                Type = type,
-                Humans = players,
-                MaxPlayers = maxPlayers,
-                Bots = bots,
-                Hibernating = hibernating,
-                LocalHost = localIp,
-                PublicHost = publicIp
-            };
+                bots = 0;
+                humans = byte.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                maxPlayers = byte.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+            }
+        }
+        else
+        {
+            hibernating = input.Contains("hibernating") && !input.Contains("not hibernating");
         }
 
-        public Status Parse(Group group)
+        string? localIp = null, publicIp = null;
+        if (groups.TryGetValue("udp / ip", out var address))
         {
-            throw new System.NotImplementedException();
+            var match = Regex.Match(address, "\\((.*:.*)\\)\\s+\\(public ip: (.*)\\).*");
+            if (match.Success)
+            {
+                localIp = match.Groups[1].Value;
+                publicIp = match.Groups[2].Value;
+            }
+
+            // NOTE: legacy format
+            else if ((match = Regex.Match(address, "((\\d|\\.)+:(\\d|\\.)+)\\(public ip: (.*)\\).*")).Success)
+            {
+                localIp = match.Groups[1].Value;
+                publicIp = match.Groups[4].Value;
+            }
         }
+
+        return new(bots, default, hostname, humans, localIp, map, maxPlayers, publicIp, steamId, version, hibernating, default);
     }
 }

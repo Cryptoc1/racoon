@@ -1,25 +1,17 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CoreRCON.Parsers.Standard
+namespace CoreRCON.Parsers.Standard;
+
+public record TeamChange(Player Player, string Team) : IParseable<TeamChange>;
+
+public sealed class TeamChangeParser : RegexParser<TeamChange>
 {
-    public class TeamChange : IParseable
+    public TeamChangeParser() : base(@$"(?<Player>{PlayerParser.Shared.Pattern}) joined team ""(?<Team>.+?)""")
     {
-        public Player Player { get; set; }
-        public string Team { get; set; }
     }
 
-    public class TeamChangeParser : DefaultParser<TeamChange>
-    {
-        public override string Pattern { get; } = $"(?<Player>{playerParser.Pattern}) joined team \"(?<Team>.+?)\"";
-        private static PlayerParser playerParser { get; } = new PlayerParser();
-
-        public override TeamChange Load(GroupCollection groups)
-        {
-            return new TeamChange
-            {
-                Player = playerParser.Parse(groups["Player"]),
-                Team = groups["Team"].Value
-            };
-        }
-    }
+    protected override TeamChange Load(GroupCollection groups) => new(
+        PlayerParser.Shared.Parse(groups["Player"]),
+        groups["Team"].Value
+    );
 }

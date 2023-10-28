@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Tool",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/CoreRCON.Tool/bin/Debug/net8.0/CoreRCON.Tool.exe",
+      "args": [],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "cwd": "${workspaceFolder}/src/CoreRCON.Tool",
+      "justMyCode": true,
+      "preLaunchTask": "${defaultBuildTask}",
+      "requireExactSource": true,
+      "logging": {
+        "moduleLoad": false,
+        "threadExit": false,
+      },
+      "console": "integratedTerminal",
+      "sourceLinkOptions": {
+        "https://raw.githubusercontent.com/*": {
+          "enabled": true
+        },
+        "*": {
+          "enabled": false
+        }
+      },
+      "stopAtEntry": false,
+    }
+  ]
+}

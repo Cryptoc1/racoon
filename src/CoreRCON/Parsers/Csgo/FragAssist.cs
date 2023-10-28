@@ -1,26 +1,18 @@
 ﻿using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.Csgo
+namespace CoreRCON.Parsers.Csgo;
+
+public record FragAssist(Player Assister, Player Killed) : IParseable<FragAssist>;
+
+public sealed class FragAssistParser : RegexParser<FragAssist>
 {
-    public class FragAssist : IParseable
+    public FragAssistParser() : base(@$"(?<Assister>{PlayerParser.Shared.Pattern}) assisted killing (?<Killed>{PlayerParser.Shared.Pattern})?")
     {
-        public Player Killed { get; set; }
-        public Player Assister { get; set; }
     }
 
-    public class FragAssistParser : DefaultParser<FragAssist>
-    {
-        public override string Pattern { get; } = $"(?<Assister>{playerParser.Pattern}) assisted killing (?<Killed>{playerParser.Pattern})?";
-        private static PlayerParser playerParser { get; } = new PlayerParser();
-
-        public override FragAssist Load(GroupCollection groups)
-        {
-            return new FragAssist
-            {
-                Assister = playerParser.Parse(groups["Assister"]),
-                Killed = playerParser.Parse(groups["Killed"]),
-            };
-        }
-    }
+    protected override FragAssist Load(GroupCollection groups) => new(
+        PlayerParser.Shared.Parse(groups["Assister"]),
+        PlayerParser.Shared.Parse(groups["Killed"])
+    );
 }

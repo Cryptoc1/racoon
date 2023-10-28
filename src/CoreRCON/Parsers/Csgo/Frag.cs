@@ -1,31 +1,21 @@
 ﻿using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.Csgo
+namespace CoreRCON.Parsers.Csgo;
+
+public record Frag(bool Headshot, Player Killed, Player Killer, string Weapon) : IParseable<Frag>;
+
+public sealed class FragParser : RegexParser<Frag>
 {
-    public class Frag : IParseable
+    // TODO: parse position (square bracket content)
+    public FragParser() : base(@$"(?<Killer>{PlayerParser.Shared.Pattern}) \[.*?\] killed (?<Killed>{PlayerParser.Shared.Pattern}) \[.*?\] with ""(?<Weapon>.+?)""\s?(?<Headshot>\(headshot\))?")
     {
-        public Player Killed { get; set; }
-        public Player Killer { get; set; }
-        public bool Headshot { get; set; }
-        public string Weapon { get; set; }
     }
 
-    public class FragParser : DefaultParser<Frag>
-    {
-        //Todo parse position (square bracket contetnt)
-        public override string Pattern { get; } = $"(?<Killer>{playerParser.Pattern}) \\[.*?\\] killed (?<Killed>{playerParser.Pattern}) \\[.*?\\] with \"(?<Weapon>.+?)\"\\s?(?<Headshot>\\(headshot\\))?";
-        private static PlayerParser playerParser { get; } = new PlayerParser();
-
-        public override Frag Load(GroupCollection groups)
-        {
-            return new Frag
-            {
-                Killer = playerParser.Parse(groups["Killer"]),
-                Killed = playerParser.Parse(groups["Killed"]),
-                Headshot = groups["Headshot"].Success,
-                Weapon = groups["Weapon"].Value
-            };
-        }
-    }
+    protected override Frag Load(GroupCollection groups) => new(
+        groups["Headshot"].Success,
+        PlayerParser.Shared.Parse(groups["Killed"]),
+        PlayerParser.Shared.Parse(groups["Killer"]),
+        groups["Weapon"].Value
+    );
 }

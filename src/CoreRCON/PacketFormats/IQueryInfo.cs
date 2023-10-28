@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace CoreRCON.PacketFormats;
 
-namespace CoreRCON.PacketFormats
+public interface IQueryInfo
 {
-    public interface IQueryInfo
-    {
-    }
 }

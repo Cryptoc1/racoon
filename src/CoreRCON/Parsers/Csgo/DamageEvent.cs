@@ -1,42 +1,32 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.Csgo
+namespace CoreRCON.Parsers.Csgo;
+
+public record DamageEvent(int ArmorDamage, Player Attacked, int Damage, string HitLocation, int PostHealth, int PostArmor, Player Target) : IParseable<DamageEvent>;
+
+public sealed class DamageEventParser : RegexParser<DamageEvent>
 {
-    public class DamageEvent : IParseable
+    //Todo parse position (square bracket content)
+    public DamageEventParser() : base(
+        @$"(?<Attacker>{PlayerParser.Shared.Pattern}) \[.*?\] attacked (?<Target>{PlayerParser.Shared.Pattern}) \[.*?\] with ""(?<Weapon>.+?)"" " +
+        @"\(damage ""(?<Damage>\d+)""\) " +
+        @"\(damage_armor ""(?<ArmorDamage>\d+)""\) " +
+        @"\(health ""(?<Health>\d+)""\) " +
+        @"\(armor ""(?<Armor>\d+)""\) " +
+        @"\(hitgroup ""(?<Hitgroup>.*?)""\)"
+    )
     {
-        public Player Attacked { get; set; }
-        public Player Target { get; set; }
-        public int Damage { get; set; }
-        public int ArmorDamage { get; set; }
-        public int PostHealth { get; set; }
-        public int PostArmor { get; set; }
-        public string HitLocation { get; set; }
     }
 
-    public class DamageEventParser : DefaultParser<DamageEvent>
-    {
-        //Todo parse position (square bracket content)
-        public override string Pattern { get; } = $"(?<Attacker>{playerParser.Pattern}) \\[.*?\\] attacked (?<Target>{playerParser.Pattern}) \\[.*?\\] with \"(?<Weapon>.+?)\" " +
-            "\\(damage \"(?<Damage>\\d+)\"\\) " +
-            "\\(damage_armor \"(?<ArmorDamage>\\d+)\"\\) " +
-            "\\(health \"(?<Health>\\d+)\"\\) " +
-            "\\(armor \"(?<Armor>\\d+)\"\\) " +
-            "\\(hitgroup \"(?<Hitgroup>.*?)\"\\)";
-        private static PlayerParser playerParser { get; } = new PlayerParser();
-
-        public override DamageEvent Load(GroupCollection groups)
-        {
-            return new DamageEvent
-            {
-                Target = playerParser.Parse(groups["Target"]),
-                Attacked = playerParser.Parse(groups["Attacker"]),
-                Damage = int.Parse(groups["Damage"].Value),
-                ArmorDamage = int.Parse(groups["ArmorDamage"].Value),
-                PostHealth = int.Parse(groups["Health"].Value),
-                PostArmor = int.Parse(groups["Armor"].Value),
-                HitLocation = groups["Hitgroup"].Value
-            };
-        }
-    }
+    protected override DamageEvent Load(GroupCollection groups) => new(
+        int.Parse(groups["ArmorDamage"].Value, CultureInfo.InvariantCulture),
+        PlayerParser.Shared.Parse(groups["Attacker"]),
+        int.Parse(groups["Damage"].Value, CultureInfo.InvariantCulture),
+        groups["Hitgroup"].Value,
+        int.Parse(groups["Health"].Value, CultureInfo.InvariantCulture),
+        int.Parse(groups["Armor"].Value, CultureInfo.InvariantCulture),
+        PlayerParser.Shared.Parse(groups["Target"])
+    );
 }

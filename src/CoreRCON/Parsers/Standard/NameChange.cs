@@ -1,25 +1,17 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CoreRCON.Parsers.Standard
+namespace CoreRCON.Parsers.Standard;
+
+public record NameChange(string NewName, Player Player) : IParseable<NameChange>;
+
+public sealed class NameChangeParser : RegexParser<NameChange>
 {
-    public class NameChange : IParseable
+    public NameChangeParser() : base(@$"(?<Player>{PlayerParser.Shared.Pattern}) changed name to ""(?<Name>.+?)""$")
     {
-        public string NewName { get; set; }
-        public Player Player { get; set; }
     }
 
-    public class NameChangeParser : DefaultParser<NameChange>
-    {
-        public override string Pattern { get; } = $"(?<Player>{playerParser.Pattern}) changed name to \"(?<Name>.+?)\"$";
-        private static PlayerParser playerParser { get; } = new PlayerParser();
-
-        public override NameChange Load(GroupCollection groups)
-        {
-            return new NameChange
-            {
-                Player = playerParser.Parse(groups["Player"]),
-                NewName = groups["Name"].Value
-            };
-        }
-    }
+    protected override NameChange Load(GroupCollection groups) => new(
+        groups["Name"].Value,
+        PlayerParser.Shared.Parse(groups["Player"])
+    );
 }

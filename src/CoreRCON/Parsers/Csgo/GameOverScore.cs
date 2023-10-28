@@ -1,25 +1,18 @@
-﻿using System.Text.RegularExpressions;
-using CoreRCON.Parsers.Standard;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
-namespace CoreRCON.Parsers.Csgo
+namespace CoreRCON.Parsers.Csgo;
+
+public record GameOverScore(int CTScore, int TScore) : IParseable<GameOverScore>;
+
+public sealed class GameOverScoreParser : RegexParser<GameOverScore>
 {
-    public class GameOverScore : IParseable
+    public GameOverScoreParser() : base(@"Game Over: .*? .*? .*? score (?<ct_score>\d+):(?<t_score>\d+) (after \d+ min)?")
     {
-        public int TScore { get; set; }
-        public int CTScore { get; set; }
     }
 
-    public class GameOverScoreParser : DefaultParser<GameOverScore>
-    {
-        public override string Pattern { get; } = @"Game Over: .*? .*? .*? score (?<ct_score>\d+):(?<t_score>\d+) (after \d+ min)?";
-
-        public override GameOverScore Load(GroupCollection groups)
-        {
-            return new GameOverScore
-            {
-                TScore = int.Parse(groups["t_score"].Value),
-                CTScore = int.Parse(groups["ct_score"].Value),
-            };
-        }
-    }
+    protected override GameOverScore Load(GroupCollection groups) => new(
+        int.Parse(groups["ct_score"].Value, CultureInfo.InvariantCulture),
+        int.Parse(groups["t_score"].Value, CultureInfo.InvariantCulture)
+    );
 }
