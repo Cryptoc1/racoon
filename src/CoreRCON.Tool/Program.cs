@@ -9,7 +9,7 @@ using RCONStatus = CoreRCON.Parsers.Standard.Status;
 var app = new CommandApp<ShellCommand>();
 app.Configure(options =>
 {
-    options.SetApplicationName("rcon-repl");
+    options.SetApplicationName("rcon");
     options.PropagateExceptions();
 });
 
@@ -30,7 +30,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
             ? AnsiConsole.Prompt(new TextPrompt<string>($"Password{NerdFontIcon.AngleRight}").Secret())
             : parameters.Password;
 
-        using var console = new RCON(host, parameters.Port, password, new(parameters.Timeout, parameters.IsMultiPacketSupported));
+        using var console = new RCON(host, parameters.Port, password, new RCONOptions(parameters.Timeout, parameters.UseKoraktorMethod));
         if (!await TryConnect(console))
         {
             return ShellExitCode.FailedToConnect;
@@ -41,7 +41,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
 
         while (console.ConnectionState is RCONConnectionState.Authenticated)
         {
-            var command = AnsiConsole.Ask<string>($"[bold {(error ? "orange" : "green")}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/]").Trim();
+            var command = AnsiConsole.Ask<string>($"[bold {(error ? "orange1" : "lime")}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/]").Trim();
             error = false;
 
             if (string.IsNullOrWhiteSpace(command))
@@ -108,10 +108,10 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         try
         {
             await AnsiConsole.Status()
-                .StartAsync("Connecting...", context =>
+                .StartAsync("Connecting...", async context =>
                 {
                     context.Spinner(Spinner.Known.Dots3);
-                    return console.ConnectAsync();
+                    await console.ConnectAsync();
                 });
         }
         catch (Exception exception)
@@ -145,9 +145,6 @@ internal sealed class ShellParameters : CommandSettings
     [CommandArgument(0, "<host>")]
     public string Host { get; init; } = default!;
 
-    [CommandOption("--multi-packet")]
-    public bool IsMultiPacketSupported { get; init; }
-
     [CommandArgument(1, "[password]")]
     public string Password { get; init; } = default!;
 
@@ -156,4 +153,7 @@ internal sealed class ShellParameters : CommandSettings
 
     [CommandOption("-t|--timeout")]
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(10);
+
+    [CommandOption("--use-koraktor")]
+    public bool UseKoraktorMethod { get; init; }
 }
