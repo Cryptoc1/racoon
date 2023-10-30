@@ -1,84 +1,46 @@
 ﻿using System.Globalization;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using CoreRCON.Extensions;
 
 namespace CoreRCON.PacketFormats;
 
-// Structure of a LogAddress packet from SRCDS:
-// 255 255 255 255
-// 82 or 83 (82 = no password, 83 = password)
-// if 82, the rest of the packet is the body.
-// Not sure what happens if it's 83, since I can't get my test server to return one even with sv_logsecret set.
-// https://developer.valvesoftware.com/wiki/HL_Log_Standard
-public readonly record struct LogAddressPacket
+/// <summary> Represents the contents of a log_address packet. </summary>
+/// <param name="Body"> The body of the log. </param>
+/// <param name="HasPassword"> Whether the packet includes a password. </param>
+/// <param name="Timestamp"> The parsed timestamp of the log. </param>
+public readonly record struct LogAddressPacket(string Body, bool HasPassword, DateTime Timestamp)
 {
-    private static readonly Regex DateExtractor = new(@"L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}):", RegexOptions.Compiled);
+    private static readonly Regex DateExtractor = new(@"(L )?(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}(\.\d{3})?)\s?(:|-)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly string[] DateFormats = [
+        "MM/dd/yyyy - HH:mm:ss",
+        "MM/dd/yyyy - HH:mm:ss.fff"
+    ];
 
-    /// <summary> The body of the packet with the timestamp removed. </summary>
-    public readonly string Body { get; }
-
-    /// <summary> [UNSUPPORTED] If the packet was sent with sv_logsecret set. </summary>
-    public readonly bool HasPassword { get; }
-
-    /// <summary> The raw body of the packet. </summary>
-    public readonly string RawBody { get; }
-
-    /// <summary> The timestamp at which the packet was sent (not received). </summary>
-    public readonly DateTime Timestamp { get; }
-
-    /// <summary> Create a new packet.</summary>
-    /// <param name="hasPassword">[UNSUPPORTED] Whether the server returned this packet with sv_logsecret set.</param>
-    /// <param name="value">The raw body from the packet.</param>
-    public LogAddressPacket(bool hasPassword, string value)
-    {
-        HasPassword = hasPassword;
-        RawBody = value;
-
-        // Get timestamp
-        var match = DateExtractor.Match(value);
-        if (match.Success)
-        {
-            Timestamp = DateTime.ParseExact(match.Groups[1].Value, "MM/dd/yyyy - HH:mm:ss", CultureInfo.InvariantCulture);
-        }
-        else
-        {
-            Timestamp = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        }
-
-        // Get body without the date/time
-        Body = value[25..];
-    }
-
-    /// <summary> Converts a buffer to a packet. </summary>
-    /// <param name="buffer">Buffer to read.</param>
+    /// <summary> Attempt to serialize a <see cref="LogAddressPacket"/> from a buffer of bytes. </summary>
+    /// <param name="buffer"> The buffer to be read. </param>
+    /// <see cref="https://developer.valvesoftware.com/wiki/HL_Log_Standard"/>
     /// <exception cref="InvalidDataException"/>
-    internal static bool TryFromBytes(byte[] buffer, out LogAddressPacket packet)
+    public static bool TryFromBytes(byte[] buffer, out LogAddressPacket packet)
     {
-        if (buffer.Length < 7 || !buffer.Take(4).SequenceEqual(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }))
+        if (buffer.Length > 7 && ContainsMarker(buffer) && BufferHelper.TryGetString(buffer, 5, buffer.Length - 8, out var value))
         {
-            packet = default;
-            return false;
+            var match = DateExtractor.Match(value);
+            if (match.Success && DateTime.TryParseExact(match.Groups[2].Value, DateFormats, CultureInfo.InvariantCulture, default, out var timestamp))
+            {
+                var body = NewLineSanitizer.Sanitize(value[match.Groups[0].Length..]).Trim();
+                if (body.Length is not 0)
+                {
+                    packet = new(body, buffer[5] is 83, timestamp);
+                    return true;
+                }
+            }
         }
 
-        // 83 = magic byte
-        bool hasPassword = buffer[5] == 83;
+        packet = default;
+        return false;
 
-        try
-        {
-            string body = NewLineSanitizer.Sanitize(
-                Encoding.UTF8.GetString(buffer, 5, buffer.Length - 7));
-
-            packet = new(hasPassword, body);
-            return true;
-        }
-        catch (Exception ex)
-        {
-#if DEBUG
-            System.Diagnostics.Debug.WriteLine($"{nameof(LogAddressPacket)}: {DateTime.Now} - Error reading logaddress packet from server: {ex.Message}");
-#endif
-
-            packet = default;
-            return false;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool ContainsMarker(byte[] buffer) => buffer[0] is 0xFF && buffer[1] is 0xFF && buffer[2] is 0xFF && buffer[3] is 0xFF;
     }
 }

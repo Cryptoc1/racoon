@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CoreRCON.Extensions;
 using CoreRCON.PacketFormats;
 using CoreRCON.PacketFormats.SourceQuery;
 
@@ -67,7 +68,7 @@ public class ServerQuery
                     // If Server responds with a Challenge number we need to resend the request with that number
                     if (sourceResponse.Buffer.ToArray().Take(_asInfochallengeResponse.Length).SequenceEqual(_asInfochallengeResponse))
                     {
-                        byte[] challenge = _asInfoPayload.Concat(sourceResponse.Buffer.Skip(5).Take(4)).ToArray();
+                        byte[] challenge = [.. _asInfoPayload, .. sourceResponse.Buffer.Skip(5).Take(4)];
                         await _client.SendAsync(challenge, challenge.Length, host);
                         sourceResponse = await _client.ReceiveAsync();
                     }

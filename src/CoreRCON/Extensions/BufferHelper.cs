@@ -1,10 +1,8 @@
-﻿using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 
 namespace CoreRCON;
 
-internal static class Extensions
+internal static class BufferHelper
 {
     /// <summary> Step through a byte array and read a null-terminated string. </summary>
     /// <param name="bytes">Byte array.</param>
@@ -67,38 +65,17 @@ internal static class Extensions
         return BitConverter.ToSingle(bytes, start);
     }
 
-    /// <summary> Receives a block of memory asyncronosly </summary>
-    /// <param name="socket">Socket to receive from</param>
-    /// <param name="memory">Memory segment to receive to</param>
-    /// <param name="socketFlags">Flags for socket</param>
-    /// <returns>Awaitable task resolving to the number of bytes received</returns>
-    public static Task<int> ReceiveAsync(this Socket socket, Memory<byte> memory, SocketFlags socketFlags)
+    public static bool TryGetString(byte[] buffer, int index, int count, out string value)
     {
-        ReadOnlyMemory<byte> casted = memory;
-        if (!MemoryMarshal.TryGetArray(casted, out var buffer))
+        try
         {
-            throw new ArgumentException("Expected an Array-backed buffer.", nameof(memory));
+            value = Encoding.UTF8.GetString(buffer, index, count);
+            return true;
         }
-
-        return SocketTaskExtensions.ReceiveAsync(socket, buffer, socketFlags);
-    }
-
-    // See https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/Scenarios/Infrastructure/TaskExtensions.cs
-    public static async Task<T> WaitAsync<T>(this Task<T> task, TimeSpan? timeout)
-    {
-        timeout ??= TimeSpan.Zero;
-        if (timeout == TimeSpan.Zero)
+        catch (ArgumentException)
         {
-            return await task;
+            value = string.Empty;
+            return false;
         }
-
-        using var cancellation = new CancellationTokenSource();
-        if (await Task.WhenAny(task, Task.Delay(timeout.Value, cancellation.Token)) == task)
-        {
-            cancellation.Cancel();
-            return await task;
-        }
-
-        throw new TimeoutException($"An asynchronous operation exceeded the configured timeout of '{timeout.Value}'.");
     }
 }

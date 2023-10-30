@@ -4,6 +4,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CoreRCON.Extensions;
 using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
 
@@ -61,9 +62,9 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
             _authenticationCompletion = new TaskCompletionSource<bool>();
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
+                NoDelay = true,
                 ReceiveTimeout = (int)_options.Timeout.TotalMilliseconds,
                 SendTimeout = (int)_options.Timeout.TotalMilliseconds,
-                NoDelay = true
             };
 
             try
@@ -118,6 +119,14 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         }
 
         _commandLock.Dispose();
+    }
+
+    private void EnsureConnected()
+    {
+        if (_connection is null)
+        {
+            throw new RCONException($"The connection has not been created. Ensure '{nameof(ConnectAsync)}' is invoked prior to {nameof(SendCommandAsync)}.");
+        }
     }
 
     private void OnDisconnected()
@@ -194,7 +203,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         EnsureConnected();
 
         // lock client for the execution of this command
-        await _commandLock.WaitAsync();
+        await _commandLock.WaitAsync().ConfigureAwait(false);
 
         var packet = new RCONPacket(
             Interlocked.Increment(ref _packetId),
@@ -221,9 +230,10 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         }
         finally
         {
-            _commandLock.Release();
             _completionByPacketId.TryRemove(packet.Id, out _);
             _responseByPacketId.Remove(packet.Id);
+
+            _commandLock.Release();
         }
 
         if (completed == completion.Task)
@@ -242,16 +252,8 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         if (packet.Type is RCONPacketType.ExecCommand && _options.UseKoraktorMethod)
         {
             // NOTE: Koraktor method: send an additional empty packet; the server will respond with an empty packet, indicating completion of the request
-            packet = new(packet.Id, RCONPacketType.Response, "");
+            packet = new(packet.Id, RCONPacketType.Response, string.Empty);
             await _connection.SendAsync(packet);
-        }
-    }
-
-    private void EnsureConnected()
-    {
-        if (_connection is null)
-        {
-            throw new RCONException($"The connection has not been created. Ensure '{nameof(ConnectAsync)}' is invoked prior to {nameof(SendCommandAsync)}.");
         }
     }
 }
@@ -346,6 +348,7 @@ internal sealed class RCONConnection : IDisposable
                 if (buffer.Length >= length)
                 {
                     var end = buffer.GetPosition(length, start);
+
                     var bytes = buffer.Slice(start, end).ToArray();
                     if (RCONPacket.TryFromBytes(bytes, out var packet))
                     {
@@ -381,7 +384,8 @@ internal sealed class RCONConnection : IDisposable
             var written = packet.GetBytes(buffer);
             var segment = new ArraySegment<byte>(buffer, 0, written);
 
-            await _socket.SendAsync(segment, SocketFlags.None);
+            await _socket.SendAsync(segment, SocketFlags.None)
+                .ConfigureAwait(false);
         }
         finally
         {

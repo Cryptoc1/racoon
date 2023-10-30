@@ -1,8 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace CoreRCON;
 
-/// <summary> Represents an exception that occurs while operating on an RCON Host. </summary>
+/// <summary> Represents an exception that occurs while performing operations against a RCON Host. </summary>
 public class RCONException : Exception
 {
     public RCONException()
@@ -34,7 +34,7 @@ public class RCONAuthenticationException : RCONException
     }
 }
 
-/// <summary> Represents an exception that occurs while sending a command against an RCON Host. </summary>
+/// <summary> Represents an exception that occurs while sending a command to a RCON host. </summary>
 public class RCONCommandException : RCONException
 {
     /// <summary> The command text that resulted in the exception to be thrown. </summary>

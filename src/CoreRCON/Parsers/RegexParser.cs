@@ -12,7 +12,7 @@ public abstract class RegexParser<T> : IParser<T>
     public string Pattern { get; }
 
     private Regex? pattern;
-    public Regex PatternRegex => pattern ??= new(Pattern, RegexOptions.Compiled | RegexOptions.Singleline);
+    public Regex PatternRegex => pattern ??= new(Pattern, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
     protected RegexParser([StringSyntax(StringSyntaxAttribute.Regex)] string pattern)
     {

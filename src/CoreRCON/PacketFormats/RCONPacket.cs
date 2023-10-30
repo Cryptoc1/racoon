@@ -1,11 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
+using CoreRCON.Extensions;
 
 /// <summary> Represents a Valve RCON Packet. </summary>
-/// <seealso href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
+/// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
 namespace CoreRCON.PacketFormats;
 
-/// <summary> Represents a serialized RCON Packet. </summary>
+/// <summary> Represents the contents of a RCON packet. </summary>
 /// <param name="Id"> Some kind of identifier to keep track of responses from the server. </param>
 /// <param name="Type"> What the server is supposed to do with the body of this packet. </param>
 /// <param name="Body"> The actual information held within. </param>
@@ -13,10 +14,10 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
 {
     /// <summary> The size of the packet. </summary>
     /// <remarks> The size of the packet does not include the (4) bytes represented by the Size integer itself. </remarks>
-    public int Size { get; } = RCONPacketDefaults.MinPacketSize - sizeof(int) + Encoding.UTF8.GetByteCount(Body);
+    public int Size { get; } = RCONPacketDefaults.MinPacketSize - sizeof(int) + Body.Length;
 
     /// <summary> Serializes the packet to the given <paramref name="buffer"/>. </summary>
-    /// <seealso href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
+    /// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
     /// <remarks> Body is serialized as UTF8. </remarks>
     /// <returns> The number of bytes written. </returns>
     /// <exception cref="ArgumentOutOfRangeException"> The given buffer is not large enough to serialize the packet. </exception>
@@ -50,12 +51,13 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
             var size = BitConverter.ToInt32(buffer, 0);
             if (size + sizeof(int) >= RCONPacketDefaults.MinPacketSize && size + sizeof(int) == buffer.Length)
             {
-                if (TryGetBody(buffer, out var body))
+                if (BufferHelper.TryGetString(buffer, 10, buffer.Length - (RCONPacketDefaults.MinPacketSize - 2), out var body))
                 {
-                    var id = BitConverter.ToInt32(buffer, 4);
-                    var type = (RCONPacketType)BitConverter.ToInt32(buffer, 8);
+                    packet = new(
+                        BitConverter.ToInt32(buffer, 4),
+                        (RCONPacketType)BitConverter.ToInt32(buffer, 8),
+                        NewLineSanitizer.Sanitize(body).TrimEnd());
 
-                    packet = new(id, type, body);
                     return true;
                 }
             }
@@ -63,23 +65,6 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
 
         packet = default;
         return false;
-
-        static bool TryGetBody(byte[] buffer, out string value)
-        {
-            try
-            {
-                value = NewLineSanitizer.Sanitize(
-                    Encoding.UTF8.GetString(buffer, 10, buffer.Length - (RCONPacketDefaults.MinPacketSize - 2)))
-                    .TrimEnd();
-
-                return true;
-            }
-            catch (ArgumentException)
-            {
-                value = string.Empty;
-                return false;
-            }
-        }
     }
 }
 
@@ -94,7 +79,7 @@ public static class RCONPacketDefaults
 }
 
 /// <summary> Defines the type of data represented in an <see cref="RCONPacket"/>. </summary>
-/// <see href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Packet_Type"/>
+/// <see cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Packet_Type"/>
 public enum RCONPacketType
 {
     /// <summary> Indicates a packet is a response to an <see cref="ExecCommand"/> packet. </summary>
