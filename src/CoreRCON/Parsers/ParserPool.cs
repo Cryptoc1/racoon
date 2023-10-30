@@ -4,9 +4,10 @@ using System.Runtime.CompilerServices;
 
 namespace CoreRCON.Parsers;
 
-/// <summary> Provides access to a pool of <see cref="IParser{T}"/>s </summary>
+/// <summary> Defines a type that provides reusable instances <see cref="IParser{T}"/>s. </summary>
 public class ParserPool
 {
+    /// <summary> A reference to a shared instance of <see cref="ParserPool"/>. </summary>
     public static readonly ParserPool Shared = new();
 
     private readonly ConcurrentDictionary<Type, object> _parserByParsableType = [];
@@ -18,29 +19,31 @@ public class ParserPool
     {
         var parser = _parserByParsableType.GetOrAdd(
             typeof(T),
-            t => Activator.CreateInstance(FindParserImplementation<T>(t.Assembly)));
+            t => Activator.CreateInstance(
+                FindImplementations<T>(t.Assembly).First()));
 
         // NOTE: avoid runtime checks; we know this must be an `IParser<T>`
         return Unsafe.As<IParser<T>>(parser);
     }
 
-    /// <summary> Scans the given <paramref name="assembly"/> for the first implementation of an <see cref="IParser{T}"/>. </summary>
-    /// <typeparam name="T"> The type of <see cref="IParseable"/> to find a parser for. </typeparam>
+    /// <summary> Searches the given <paramref name="assembly"/> for implementations of <see cref="IParser{T}"/>. </summary>
+    /// <typeparam name="T"> The type of <see cref="IParseable{T}"/> to find a parser for. </typeparam>
     /// <param name="assembly"> The assembly to search. </param>
-    /// <returns> The implementation type for an <see cref="IParser{T}"/> of <typeparamref name="T"/>. </returns>
-    /// <exception cref="ArgumentException"> A parser could not be found. </exception>
-    public static Type FindParserImplementation<T>(Assembly assembly)
+    public static IEnumerable<Type> FindImplementations<T>(Assembly assembly)
         where T : class, IParseable<T>
     {
-        var parserType = typeof(IParser<T>);
+        Type? parserType = null;
         foreach (var type in assembly.GetTypes())
         {
-            if (type.GetInterfaces().Contains(parserType))
+            if (!type.IsPublic || !type.IsClass || type.IsAbstract || type.IsGenericType)
             {
-                return type;
+                continue;
+            }
+
+            if (type.GetInterfaces().Contains(parserType ??= typeof(IParser<T>)))
+            {
+                yield return type;
             }
         }
-
-        throw new ArgumentException($"An implementation of '{parserType.Name}' was not found in the assembly '{assembly.FullName}'.", nameof(assembly));
     }
 }

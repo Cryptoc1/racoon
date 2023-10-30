@@ -2,31 +2,31 @@
 using System.Text;
 using CoreRCON.Extensions;
 
-/// <summary> Represents a Valve RCON Packet. </summary>
-/// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
 namespace CoreRCON.PacketFormats;
 
-/// <summary> Represents the contents of a RCON packet. </summary>
+/// <summary> Represents a Source RCON Packet. </summary>
 /// <param name="Id"> Some kind of identifier to keep track of responses from the server. </param>
 /// <param name="Type"> What the server is supposed to do with the body of this packet. </param>
 /// <param name="Body"> The actual information held within. </param>
+/// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
 public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Body)
 {
     /// <summary> The size of the packet. </summary>
     /// <remarks> The size of the packet does not include the (4) bytes represented by the Size integer itself. </remarks>
-    public int Size { get; } = RCONPacketDefaults.MinPacketSize - sizeof(int) + Body.Length;
+    public readonly int Size => RCONPacketDefaults.MinPacketSize + Body.Length;
 
-    /// <summary> Serializes the packet to the given <paramref name="buffer"/>. </summary>
-    /// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
+    /// <summary> Writes the packet as bytes to the given <paramref name="buffer"/>. </summary>
     /// <remarks> Body is serialized as UTF8. </remarks>
     /// <returns> The number of bytes written. </returns>
     /// <exception cref="ArgumentOutOfRangeException"> The given buffer is not large enough to serialize the packet. </exception>
+    /// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
     public int GetBytes(Span<byte> buffer)
     {
-        if (buffer.Length < Size + sizeof(int)) throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Buffer must be have a length of at least {Size + sizeof(int)} to serialize packet.");
+        var size = Size;
+        if (buffer.Length < size + sizeof(int)) throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Buffer must be have a length of at least {size + sizeof(int)} to serialize packet.");
 
         var written = 0;
-        Write(buffer, ref written, BitConverter.GetBytes(Size));
+        Write(buffer, ref written, BitConverter.GetBytes(size));
         Write(buffer, ref written, BitConverter.GetBytes(Id));
         Write(buffer, ref written, BitConverter.GetBytes((int)Type));
         Write(buffer, ref written, Encoding.UTF8.GetBytes(Body));
@@ -46,12 +46,12 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
 
     public static bool TryFromBytes(byte[] buffer, out RCONPacket packet)
     {
-        if (buffer.Length >= RCONPacketDefaults.MinPacketSize)
+        if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
         {
             var size = BitConverter.ToInt32(buffer, 0);
-            if (size + sizeof(int) >= RCONPacketDefaults.MinPacketSize && size + sizeof(int) == buffer.Length)
+            if (size >= RCONPacketDefaults.MinPacketSize && buffer.Length == size + sizeof(int))
             {
-                if (BufferHelper.TryGetString(buffer, 10, buffer.Length - (RCONPacketDefaults.MinPacketSize - 2), out var body))
+                if (BufferHelper.TryGetString(buffer, RCONPacketDefaults.MinPacketSize + 2, size - RCONPacketDefaults.MinPacketSize, out var body))
                 {
                     packet = new(
                         BitConverter.ToInt32(buffer, 4),
@@ -75,7 +75,7 @@ public static class RCONPacketDefaults
     public const int MaxPacketSize = 4096;
 
     /// <summary> The minimum size of a RCON packet. </summary>
-    public const int MinPacketSize = /* size */ sizeof(int) + /* id */ sizeof(int) + /* type */ sizeof(int) + /* null terminators */ 2;
+    public const int MinPacketSize = /* id */ sizeof(int) + /* type */ sizeof(int) + /* null terminators */ 2;
 }
 
 /// <summary> Defines the type of data represented in an <see cref="RCONPacket"/>. </summary>

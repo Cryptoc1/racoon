@@ -103,7 +103,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         return default;
     }
 
-    private static async Task<bool> TryConnect(RCON console)
+    private static async Task<bool> TryConnect(RCON console, int retry = default)
     {
         try
         {
@@ -111,6 +111,8 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
                 .StartAsync("Connecting...", async context =>
                 {
                     context.Spinner(Spinner.Known.Dots3);
+
+                    await Task.Delay(retry is 0 ? 250 : 1250);
                     await console.ConnectAsync();
                 });
         }
@@ -118,7 +120,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         when (exception is RCONException or SocketException)
         {
             return AnsiConsole.Confirm($"[bold red]{NerdFontIcon.LanDisconnect}[/]Failed to connect to the host, retry?")
-                && await TryConnect(console);
+                && await TryConnect(console, ++retry);
         }
 
         return true;

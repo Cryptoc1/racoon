@@ -65,11 +65,11 @@ internal static class BufferHelper
         return BitConverter.ToSingle(bytes, start);
     }
 
-    public static bool TryGetString(byte[] buffer, int index, int count, out string value)
+    public static bool TryGetString(byte[] buffer, int offset, int length, out string value)
     {
         try
         {
-            value = Encoding.UTF8.GetString(buffer, index, count);
+            value = Encoding.UTF8.GetString(buffer, offset, length);
             return true;
         }
         catch (ArgumentException)

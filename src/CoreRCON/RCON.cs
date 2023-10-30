@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using CoreRCON.Extensions;
 using CoreRCON.PacketFormats;
@@ -10,9 +11,10 @@ using CoreRCON.Parsers;
 
 namespace CoreRCON;
 
-/// <summary> Create an RCON. </summary>
+/// <summary> Create a RCON client. </summary>
 /// <param name="endpoint"> The server to connect to. </param>
 /// <param name="password"> The password to authenticate with. </param>
+/// <param name="options"> The options to use for connecting to the host. </param>
 public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? options = null) : IDisposable
 {
     // Allows us to keep track of when authentication succeeds, so we can block Connect from returning until it does.
@@ -51,7 +53,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     {
     }
 
-    /// <summary> Connect RCON. </summary>
+    /// <summary> Connect to the configured RCON host. </summary>
     /// <returns> A task which completes when authentication with the host succeeds. </returns>
     /// <exception cref="RCONException"> An unexpected error occurred attempting to connect to the server, caller may check the InnerException for further details. </exception>
     /// <exception cref="RCONAuthenticationException"> Connection with the server was successful, but authentication failed. </exception>
@@ -184,9 +186,9 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     public async Task<T> SendCommandAsync<T>(string command)
         where T : class, IParseable<T>
     {
-        string response = await SendCommandAsync(command).ConfigureAwait(false);
+        var response = await SendCommandAsync(command).ConfigureAwait(false);
 
-        var parser = ParserPool.Shared.Get<T>();
+        var parser = _options.Parsers.Get<T>();
         if (!parser.IsMatch(response))
         {
             throw RCONCommandException.Failed("The command response could not be parsed.");
@@ -256,140 +258,138 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
             await _connection.SendAsync(packet);
         }
     }
-}
 
-internal sealed class RCONConnection : IDisposable
-{
-    private readonly Pipe _pipe;
-    private readonly Socket _socket;
-
-    /// <summary> A task which completes when the underlying pipe stops receiving data from the underlying socket. </summary>
-    public Task Closed { get; }
-
-    public RCONConnection(Socket socket, Action? onClosed, Action<RCONPacket> onPacket)
+    private sealed class RCONConnection : IDisposable
     {
-        _pipe = new();
-        _socket = socket;
+        private readonly ArrayPool<byte> _arrayPool;
+        private readonly Pipe _pipe;
+        private readonly Socket _socket;
 
-        var reading = Read(_pipe.Writer, socket, onClosed);
-        var receiving = Receive(_pipe.Reader, onPacket);
+        /// <summary> A task which completes when the underlying pipe stops receiving data from the underlying socket. </summary>
+        public Task Closed { get; }
 
-        Closed = Task.WhenAny(reading, receiving);
-    }
-
-    public void Dispose()
-    {
-        if (_socket.Connected)
+        public RCONConnection(Socket socket, Action? onClosed, Action<RCONPacket> onPacket)
         {
-            _socket.Shutdown(SocketShutdown.Both);
+            _arrayPool = ArrayPool<byte>.Create();
+            _pipe = new();
+            _socket = socket;
+
+            Closed = Task.WhenAny(
+                Read(_pipe.Writer, socket, onClosed),
+                Receive(_pipe.Reader, onPacket));
         }
 
-        _socket.Dispose();
-    }
-
-    private static async Task Read(PipeWriter writer, Socket socket, Action? onClosed)
-    {
-        try
+        public void Dispose()
         {
-            while (socket.Connected)
+            if (_arrayPool is IDisposable disposable) disposable.Dispose();
+
+            if (_socket.Connected) _socket.Shutdown(SocketShutdown.Both);
+            _socket.Dispose();
+        }
+
+        private static async Task Read(PipeWriter writer, Socket socket, Action? onClosed)
+        {
+            try
             {
-                // read from socket
-                int read = await socket.ReceiveAsync(
-                    writer.GetMemory(RCONPacketDefaults.MinPacketSize),
-                    SocketFlags.None)
-                    .ConfigureAwait(false);
-
-                if (read is 0)
+                while (socket.Connected)
                 {
-                    break;
-                }
+                    // read from socket
+                    int read = await socket.ReceiveAsync(
+                        writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int)),
+                        SocketFlags.None)
+                        .ConfigureAwait(false);
 
-                // inform writer socket was read
-                writer.Advance(read);
-
-                var result = await writer.FlushAsync().ConfigureAwait(false);
-                if (result.IsCompleted)
-                {
-                    break;
-                }
-            }
-        }
-        finally
-        {
-            await writer.FlushAsync().ConfigureAwait(false);
-            await writer.CompleteAsync().ConfigureAwait(false);
-
-            onClosed?.Invoke();
-        }
-    }
-
-    private static async Task Receive(PipeReader reader, Action<RCONPacket> onPacket)
-    {
-        try
-        {
-            while (true)
-            {
-                var result = await reader.ReadAsync().ConfigureAwait(false);
-                var buffer = result.Buffer;
-                var start = buffer.Start;
-
-                if (buffer.Length < RCONPacketDefaults.MinPacketSize)
-                {
-                    if (result.IsCompleted)
+                    if (read is 0)
                     {
                         break;
                     }
 
-                    reader.AdvanceTo(start, buffer.End);
-                    continue;
-                }
+                    // inform writer socket was read
+                    writer.Advance(read);
 
-                int length = BitConverter.ToInt32(buffer.Slice(start, sizeof(int)).ToArray(), 0) + sizeof(int);
-                if (buffer.Length >= length)
-                {
-                    var end = buffer.GetPosition(length, start);
-
-                    var bytes = buffer.Slice(start, end).ToArray();
-                    if (RCONPacket.TryFromBytes(bytes, out var packet))
+                    var result = await writer.FlushAsync().ConfigureAwait(false);
+                    if (result.IsCompleted)
                     {
-                        onPacket(packet);
+                        break;
                     }
-
-                    reader.AdvanceTo(end);
-                }
-                else
-                {
-                    reader.AdvanceTo(start, buffer.End);
-                }
-
-                if (buffer.IsEmpty && result.IsCompleted)
-                {
-                    // escape
-                    break;
                 }
             }
-        }
-        finally
-        {
-            await reader.CompleteAsync().ConfigureAwait(false);
-        }
-    }
+            finally
+            {
+                await writer.FlushAsync().ConfigureAwait(false);
+                await writer.CompleteAsync().ConfigureAwait(false);
 
-    public async Task SendAsync(RCONPacket packet)
-    {
-        var buffer = ArrayPool<byte>.Shared.Rent(packet.Size + sizeof(int));
-
-        try
-        {
-            var written = packet.GetBytes(buffer);
-            var segment = new ArraySegment<byte>(buffer, 0, written);
-
-            await _socket.SendAsync(segment, SocketFlags.None)
-                .ConfigureAwait(false);
+                onClosed?.Invoke();
+            }
         }
-        finally
+
+        private static async Task Receive(PipeReader reader, Action<RCONPacket> onPacket)
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            try
+            {
+                while (true)
+                {
+                    var result = await reader.ReadAsync().ConfigureAwait(false);
+                    var buffer = result.Buffer;
+                    var start = buffer.Start;
+
+                    if (buffer.Length < RCONPacketDefaults.MinPacketSize + sizeof(int))
+                    {
+                        if (result.IsCompleted)
+                        {
+                            break;
+                        }
+
+                        reader.AdvanceTo(start, buffer.End);
+                        continue;
+                    }
+
+                    int length = BitConverter.ToInt32(buffer.Slice(start, sizeof(int)).ToArray(), 0) + sizeof(int);
+                    if (buffer.Length >= length)
+                    {
+                        var end = buffer.GetPosition(length, start);
+
+                        var bytes = buffer.Slice(start, end).ToArray();
+                        if (RCONPacket.TryFromBytes(bytes, out var packet))
+                        {
+                            onPacket(packet);
+                        }
+
+                        reader.AdvanceTo(end);
+                    }
+                    else
+                    {
+                        reader.AdvanceTo(start, buffer.End);
+                    }
+
+                    if (buffer.IsEmpty && result.IsCompleted)
+                    {
+                        // escape
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                await reader.CompleteAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task SendAsync(RCONPacket packet)
+        {
+            var buffer = _arrayPool.Rent(packet.Size + sizeof(int));
+
+            try
+            {
+                var written = packet.GetBytes(buffer);
+                var segment = new ArraySegment<byte>(buffer, 0, written);
+                await _socket.SendAsync(segment, SocketFlags.None)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                _arrayPool.Return(buffer);
+            }
         }
     }
 }
@@ -405,11 +405,14 @@ public enum RCONConnectionState
 /// <summary> Represents options for an RCON client. </summary>
 public sealed class RCONOptions
 {
+    /// <summary> A <see cref="ParserPool"/> to be used for parsing the responses of commands.  </summary>
+    public ParserPool Parsers { get; set; } = ParserPool.Shared;
+
     /// <summary> Whether the 'Koraktor' method of handling multi-packet responses should be used. </summary>
-    public bool UseKoraktorMethod { get; init; }
+    public bool UseKoraktorMethod { get; set; }
 
     /// <summary> A timeout to be used when connecting and executing commands. </summary>
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 
     public RCONOptions(bool useKoraktorMethod = false)
     {

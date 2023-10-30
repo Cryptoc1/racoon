@@ -4,8 +4,6 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <TargetFramework>net8.0</TargetFramework>
-    <!-- <TargetFrameworks>net6.0;net8.0</TargetFrameworks> -->
-
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
     <RunAnalyzers>false</RunAnalyzers>
   </PropertyGroup>
