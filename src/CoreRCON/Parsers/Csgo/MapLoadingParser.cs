@@ -4,7 +4,7 @@ namespace CoreRCON.Parsers.Csgo;
 
 public sealed record MapLoading(string Map) : IParseable<MapLoading>;
 
-internal sealed class MapLoadingParser : RegexParser<MapLoading>
+public sealed class MapLoadingParser : RegexParser<MapLoading>
 {
     public MapLoadingParser() : base(@"^Loading map ""(?<Map>.+?)""")
     {

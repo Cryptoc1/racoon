@@ -4,7 +4,7 @@ namespace CoreRCON.Parsers.Csgo;
 
 public sealed record Started : IParseable<Started>;
 
-internal sealed class StartedParser : RegexParser<Started>
+public sealed class StartedParser : RegexParser<Started>
 {
     public StartedParser() : base(@"^Started:  """"$")
     {
