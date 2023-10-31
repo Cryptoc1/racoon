@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CoreRCON;
+namespace CoreRCON.Extensions;
 
 internal static class BufferHelper
 {
@@ -11,7 +11,7 @@ internal static class BufferHelper
     /// <returns>UTF-8 encoded string.</returns>
     public static string ReadNullTerminatedString(this byte[] bytes, int start, ref int i)
     {
-        int end = Array.IndexOf(bytes, (byte)0, start);
+        var end = Array.IndexOf(bytes, (byte)0, start);
         if (end < 0) throw new ArgumentOutOfRangeException(nameof(bytes), "Byte array does not appear to contain a null byte to stop reading a string at.");
         i = end + 1;
         return Encoding.UTF8.GetString(bytes, start, end - start);
@@ -21,9 +21,9 @@ internal static class BufferHelper
     {
         var result = new List<string>();
         var byteindex = start;
-        while (bytes[byteindex] != 0x00)
+        while (bytes[ byteindex ] != 0x00)
         {
-            result.Add(ReadNullTerminatedString(bytes, byteindex, ref byteindex));
+            result.Add(bytes.ReadNullTerminatedString(byteindex, ref byteindex));
         }
         i = byteindex + 1;
         return result;
@@ -33,9 +33,9 @@ internal static class BufferHelper
     {
         var result = new Dictionary<string, string>();
         var byteindex = start;
-        while (bytes[byteindex] != 0x00)
+        while (bytes[ byteindex ] != 0x00)
         {
-            result.Add(ReadNullTerminatedString(bytes, byteindex, ref byteindex), ReadNullTerminatedString(bytes, byteindex, ref byteindex));
+            result.Add(bytes.ReadNullTerminatedString(byteindex, ref byteindex), bytes.ReadNullTerminatedString(byteindex, ref byteindex));
         }
         i = byteindex + 1;
         return result;
@@ -69,7 +69,7 @@ internal static class BufferHelper
     {
         try
         {
-            value = Encoding.UTF8.GetString(buffer, offset, length);
+            value = Encoding.UTF8.GetString(buffer, offset, Math.Min(length, buffer.Length));
             return true;
         }
         catch (ArgumentException)

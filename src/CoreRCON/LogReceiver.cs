@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
+using CoreRCON.Parsers.Abstractions;
 
 namespace CoreRCON;
 

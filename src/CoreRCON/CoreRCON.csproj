@@ -2,25 +2,10 @@
 
   <PropertyGroup>
     <Description>A .NET Standard implementation of the Source RCON Protocol.</Description>
-    <AssemblyTitle>CoreRCON</AssemblyTitle>
-    <Authors>Alexander Westberg-Bladh, Scott Kaye</Authors>
-    <AssemblyName>CoreRCON</AssemblyName>
-    <PackageId>CoreRCON</PackageId>
-    <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2</PackageTags>
-    <PackageIconUrl></PackageIconUrl>
-    <PackageProjectUrl>https://github.com/Challengermode/CoreRcon</PackageProjectUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Challengermode/CoreRcon</RepositoryUrl>
+
     <Version>5.2.0</Version>
-    <!-- <GeneratePackageOnBuild>true</GeneratePackageOnBuild> -->
     <AssemblyVersion>5.2.0</AssemblyVersion>
     <FileVersion>5.2.0.0</FileVersion>
-    <PackageReleaseNotes>https://github.com/Challengermode/CoreRcon/releases</PackageReleaseNotes>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <!-- <Target Name="PostcompileScript" AfterTargets="Build" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
@@ -28,13 +13,11 @@
   </Target> -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*-*" PrivateAssets="all" />
-    <PackageReference Include="PolySharp" Version="1.13.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-
     <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreRCON.Parsers\CoreRCON.Parsers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

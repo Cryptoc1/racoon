@@ -3,33 +3,30 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using CoreRCON.PacketFormats;
-using Microsoft.VisualBasic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoreRCON.Tests.PacketFormats;
 
-[TestClass]
 public sealed class RCONPacketTests
 {
-    [TestMethod]
-    public void GetBytes_Throws_BufferTooSmall()
+    [Fact]
+    public void GetBytes_Throws_When_BufferTooSmall()
     {
         var packet = new RCONPacket(0, RCONPacketType.Response, string.Empty);
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => packet.GetBytes(new byte[packet.Size]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => packet.GetBytes(new byte[packet.Size]));
     }
 
-    [TestMethod]
-    [DynamicData(nameof(TestData))]
-    public void GetBytes_Writes_BytesToBuffer(RCONPacket packet, byte[] bytes)
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void GetBytes_Writes_ToBuffer(RCONPacket packet, byte[] bytes)
     {
         var buffer = new byte[packet.Size + sizeof(int)];
         packet.GetBytes(buffer);
 
-        CollectionAssert.AreEqual(bytes, buffer);
+        Assert.Equal(bytes, buffer);
     }
 
-    [TestMethod]
-    [DynamicData(nameof(TestData))]
+    [Theory]
+    [MemberData(nameof(TestData))]
     public void TryFromBytes_Converts_Bytes(RCONPacket packet, byte[] bytes)
     {
         if (!RCONPacket.TryFromBytes(bytes, out var p))
@@ -37,12 +34,12 @@ public sealed class RCONPacketTests
             Assert.Fail("Failed to convert bytes to packet.");
         }
 
-        Assert.AreEqual(packet, p);
+        Assert.Equal(packet, p);
     }
 
-    [TestMethod]
+    [Theory]
     [GenerateBytes(10, RandomizeLength = true)]
-    public void TryFromBytes_DoesNotThrow_DataNotValid(byte[] bytes)
+    public void TryFromBytes_DoesNotThrow_When_DataNotValid(byte[] bytes)
     {
         // NOTE: implicit failure if an exception is thrown
         RCONPacket.TryFromBytes(bytes, out var packet);

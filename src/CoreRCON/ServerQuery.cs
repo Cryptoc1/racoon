@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using CoreRCON.Extensions;
 using CoreRCON.PacketFormats;
-using CoreRCON.PacketFormats.SourceQuery;
 
 namespace CoreRCON;
 

@@ -10,6 +10,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <TargetFramework>netstandard2.0</TargetFramework>
 
     <!-- Disable legacy analyzers and enable NET/Roslyn analyzers -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -19,8 +21,35 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
+  <!-- NuGet/AssemblyInfo -->
+  <PropertyGroup>
+    <Authors>Alexander Westberg-Bladh, Scott Kaye</Authors>
+    <Copyright>$([System.DateTime]::Now.Year) CoreRCON</Copyright>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Challengermode/CoreRcon</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://github.com/Challengermode/CoreRcon/releases</PackageReleaseNotes>
+    <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Challengermode/CoreRcon</RepositoryUrl>
+    <Title>$(AssemblyName)</Title>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*-*" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.console" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+
+    <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>

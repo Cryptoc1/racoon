@@ -1,4 +1,6 @@
-﻿namespace CoreRCON.PacketFormats.SourceQuery;
+﻿using CoreRCON.Extensions;
+
+namespace CoreRCON.PacketFormats;
 
 public enum ServerEnvironment
 {
@@ -44,22 +46,22 @@ public class SourceQueryInfo : IQueryInfo
 
     public static SourceQueryInfo FromBytes(byte[] buffer)
     {
-        int i = 6;
+        var i = 6;
         return new SourceQueryInfo
         {
-            ProtocolVersion = buffer[4],
+            ProtocolVersion = buffer[ 4 ],
             Name = buffer.ReadNullTerminatedString(i, ref i),
             Map = buffer.ReadNullTerminatedString(i, ref i),
             Folder = buffer.ReadNullTerminatedString(i, ref i),
             Game = buffer.ReadNullTerminatedString(i, ref i),
             GameId = buffer.ReadShort(i, ref i),
-            Players = buffer[i++],
-            MaxPlayers = buffer[i++],
-            Bots = buffer[i++],
-            Type = (ServerType)buffer[i++],
-            Environment = (ServerEnvironment)buffer[i++],
-            Visibility = (ServerVisibility)buffer[i++],
-            VAC = (ServerVAC)buffer[i++]
+            Players = buffer[ i++ ],
+            MaxPlayers = buffer[ i++ ],
+            Bots = buffer[ i++ ],
+            Type = (ServerType)buffer[ i++ ],
+            Environment = (ServerEnvironment)buffer[ i++ ],
+            Visibility = (ServerVisibility)buffer[ i++ ],
+            VAC = (ServerVAC)buffer[ i++ ]
         };
     }
 }
@@ -72,13 +74,13 @@ public class ServerQueryPlayer
 
     public static ServerQueryPlayer[] FromBytes(byte[] buffer)
     {
-        int i = 7;
+        var i = 7;
 
-        ServerQueryPlayer[] players = new ServerQueryPlayer[buffer[5]];
+        var players = new ServerQueryPlayer[ buffer[ 5 ] ];
 
-        for (int p = 0; p < players.Length; ++p)
+        for (var p = 0; p < players.Length; ++p)
         {
-            players[p] = new ServerQueryPlayer
+            players[ p ] = new ServerQueryPlayer
             {
                 Name = buffer.ReadNullTerminatedString(i, ref i),
                 Score = buffer.ReadShort(i, ref i),

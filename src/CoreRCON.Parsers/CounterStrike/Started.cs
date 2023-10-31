@@ -1,0 +1,15 @@
+using System.Text.RegularExpressions;
+using CoreRCON.Parsers.Abstractions;
+
+namespace CoreRCON.Parsers.CounterStrike;
+
+public sealed record Started : IParseable<Started>;
+
+public sealed class StartedParser : RegexParser<Started>
+{
+    public StartedParser() : base(@"^Started:  """"$")
+    {
+    }
+
+    protected override Started Load(GroupCollection groups) => new();
+}

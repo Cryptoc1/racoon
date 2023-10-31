@@ -1,4 +1,6 @@
-﻿namespace CoreRCON.PacketFormats;
+﻿using CoreRCON.Extensions;
+
+namespace CoreRCON.PacketFormats;
 
 public class MinecraftQueryInfo : IQueryInfo
 {

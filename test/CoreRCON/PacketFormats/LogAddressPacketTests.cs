@@ -1,24 +1,22 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using CoreRCON.PacketFormats;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoreRCON.Tests.PacketFormats;
 
-[TestClass]
 public sealed class LogAddressPacketTests
 {
-    [TestMethod]
+    [Theory]
     [GenerateBytes(10)]
-    public void TryFromBytes_DoesNotThrow_DataNotValid(byte[] bytes)
+    public void TryFromBytes_DoesNotThrow_When_DataNotValid(byte[] bytes)
     {
         // NOTE: implicit failure if an exception is thrown
         LogAddressPacket.TryFromBytes(bytes, out var _);
     }
 
-    [TestMethod]
-    [DataRow(@"L 10/19/2023 - 20:15:34: Started """"")]
-    [DataRow(@"10/19/2023 - 20:15:34.000 - Started """"")]
+    [Theory]
+    [InlineData(@"L 10/19/2023 - 20:15:34: Started """"")]
+    [InlineData(@"10/19/2023 - 20:15:34.000 - Started """"")]
     public void TryFromBytes_Converts_HLStandardAndHttp(string value)
     {
         var bytes = new byte[value.Length + 5];
@@ -31,6 +29,6 @@ public sealed class LogAddressPacketTests
         Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 5);
 
         var converted = LogAddressPacket.TryFromBytes(bytes, out var _);
-        Assert.IsTrue(converted);
+        Assert.True(converted);
     }
 }

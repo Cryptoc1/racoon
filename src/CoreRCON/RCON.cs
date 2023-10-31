@@ -3,11 +3,11 @@ using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using CoreRCON.Extensions;
 using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
+using CoreRCON.Parsers.Abstractions;
 
 namespace CoreRCON;
 
@@ -270,7 +270,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
         public RCONConnection(Socket socket, Action? onClosed, Action<RCONPacket> onPacket)
         {
-            _arrayPool = ArrayPool<byte>.Create();
+            _arrayPool = ArrayPool<byte>.Shared;
             _pipe = new();
             _socket = socket;
 
