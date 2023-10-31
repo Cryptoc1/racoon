@@ -17,7 +17,7 @@ public sealed class MapLoadingParserTests
             Assert.Fail("Input value was not matched by parser.");
         }
 
-        Assert.NotNull(parser.Parse(value));
+        Assert.Equal(loading, parser.Parse(value));
     }
 
     public static TheoryData<string, MapLoading> Data = new() {

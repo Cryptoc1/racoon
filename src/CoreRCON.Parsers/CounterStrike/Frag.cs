@@ -4,7 +4,7 @@ using CoreRCON.Parsers.Standard;
 
 namespace CoreRCON.Parsers.CounterStrike;
 
-public record Frag(bool Headshot, Player Killed, Player Killer, string Weapon) : IParseable<Frag>;
+public record Frag(bool IsHeadshot, Player Killed, Player Killer, string Weapon) : IParseable<Frag>;
 
 public sealed class FragParser : RegexParser<Frag>
 {
