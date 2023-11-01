@@ -12,7 +12,7 @@ public sealed class GameOverScoreParser : RegexParser<GameOverScore>
     {
     }
 
-    protected override GameOverScore Load(GroupCollection groups) => new(
+    protected override GameOverScore Convert(GroupCollection groups) => new(
         int.Parse(groups["ct_score"].Value, CultureInfo.InvariantCulture),
         int.Parse(groups["t_score"].Value, CultureInfo.InvariantCulture)
     );

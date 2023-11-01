@@ -11,7 +11,7 @@ public sealed class PlayerDisconnectedParser : RegexParser<PlayerDisconnected>
     {
     }
 
-    protected override PlayerDisconnected Load(GroupCollection groups) => new(
+    protected override PlayerDisconnected Convert(GroupCollection groups) => new(
         PlayerParser.Shared.Parse(groups["Player"]),
         groups["Reason"].Value
     );

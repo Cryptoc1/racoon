@@ -11,7 +11,7 @@ public sealed class NameChangeParser : RegexParser<NameChange>
     {
     }
 
-    protected override NameChange Load(GroupCollection groups) => new(
+    protected override NameChange Convert(GroupCollection groups) => new(
         groups["Name"].Value,
         PlayerParser.Shared.Parse(groups["Player"])
     );

@@ -5,11 +5,11 @@
 public interface IParser<T>
     where T : class, IParseable<T>
 {
-    /// <summary> Returns if the line received from the server can be parsed into the desired type. </summary>
-    /// <param name="input"> Single line from the server. </param>
-    bool IsMatch(string input);
+    /// <summary> Determines whether the given <paramref name="value"/> can be parsed to an instance of <typeparamref name="T"/>. </summary>
+    /// <param name="value"> A text value to match. </param>
+    bool IsMatch(string value);
 
-    /// <summary> Parses the line from the server into the desired type. </summary>
-    /// <param name="input"> Single line from the server. </param>
-    T Parse(string input);
+    /// <summary> Parses the given <paramref name="value"/> to an instance of <typeparamref name="T"/>. </summary>
+    /// <param name="value"> The text value to be parsed. </param>
+    T Parse(string value);
 }

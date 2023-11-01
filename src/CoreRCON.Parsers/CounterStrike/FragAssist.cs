@@ -12,7 +12,7 @@ public sealed class FragAssistParser : RegexParser<FragAssist>
     {
     }
 
-    protected override FragAssist Load(GroupCollection groups) => new(
+    protected override FragAssist Convert(GroupCollection groups) => new(
         PlayerParser.Shared.Parse(groups["Assister"]),
         PlayerParser.Shared.Parse(groups["Killed"])
     );

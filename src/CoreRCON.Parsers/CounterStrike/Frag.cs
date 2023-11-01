@@ -13,7 +13,7 @@ public sealed class FragParser : RegexParser<Frag>
     {
     }
 
-    protected override Frag Load(GroupCollection groups) => new(
+    protected override Frag Convert(GroupCollection groups) => new(
         groups["Headshot"].Success,
         PlayerParser.Shared.Parse(groups["Killed"]),
         PlayerParser.Shared.Parse(groups["Killer"]),

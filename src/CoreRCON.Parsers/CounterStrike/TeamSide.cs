@@ -11,5 +11,5 @@ public sealed class TeamSideParser : RegexParser<TeamSide>
     {
     }
 
-    protected override TeamSide Load(GroupCollection groups) => new(groups["side"].Value, groups["team"].Value);
+    protected override TeamSide Convert(GroupCollection groups) => new(groups["side"].Value, groups["team"].Value);
 }

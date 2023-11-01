@@ -61,7 +61,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     {
         if (_authenticationCompletion is null)
         {
-            _authenticationCompletion = new TaskCompletionSource<bool>();
+            _authenticationCompletion = new();
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
                 NoDelay = true,
@@ -232,8 +232,10 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         }
         finally
         {
-            _completionByPacketId.TryRemove(packet.Id, out _);
-            _responseByPacketId.Remove(packet.Id);
+            if (_completionByPacketId.TryRemove(packet.Id, out _))
+            {
+                _responseByPacketId.Remove(packet.Id);
+            }
 
             _commandLock.Release();
         }
@@ -281,8 +283,6 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
         public void Dispose()
         {
-            if (_arrayPool is IDisposable disposable) disposable.Dispose();
-
             if (_socket.Connected) _socket.Shutdown(SocketShutdown.Both);
             _socket.Dispose();
         }
@@ -383,6 +383,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
             {
                 var written = packet.GetBytes(buffer);
                 var segment = new ArraySegment<byte>(buffer, 0, written);
+
                 await _socket.SendAsync(segment, SocketFlags.None)
                     .ConfigureAwait(false);
             }
@@ -421,7 +422,7 @@ public sealed class RCONOptions
 
     public RCONOptions(TimeSpan timeout, bool useKoraktorMethod = false)
     {
-        UseKoraktorMethod = useKoraktorMethod;
         Timeout = timeout;
+        UseKoraktorMethod = useKoraktorMethod;
     }
 }

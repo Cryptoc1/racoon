@@ -11,7 +11,7 @@ public sealed class KillFeedParser : RegexParser<KillFeed>
     {
     }
 
-    protected override KillFeed Load(GroupCollection groups) => new(
+    protected override KillFeed Convert(GroupCollection groups) => new(
         PlayerParser.Shared.Parse(groups["Killed"]),
         PlayerParser.Shared.Parse(groups["Killer"]),
         groups["Weapon"].Value

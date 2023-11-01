@@ -14,7 +14,7 @@ public sealed class PlayerParser : RegexParser<Player>
     {
     }
 
-    protected override Player Load(GroupCollection groups) => new(
+    protected override Player Convert(GroupCollection groups) => new(
         int.Parse(groups["ClientID"].Value, CultureInfo.InvariantCulture),
         groups["Name"].Value,
         groups["SteamID"].Value,

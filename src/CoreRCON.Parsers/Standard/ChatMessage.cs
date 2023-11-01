@@ -17,7 +17,7 @@ public sealed class ChatMessageParser : RegexParser<ChatMessage>
     {
     }
 
-    protected override ChatMessage Load(GroupCollection groups) => new(
+    protected override ChatMessage Convert(GroupCollection groups) => new(
         groups["Channel"].Value == "say" ? MessageChannel.All : MessageChannel.Team,
         groups["Message"].Value,
         PlayerParser.Shared.Parse(groups["Sender"])

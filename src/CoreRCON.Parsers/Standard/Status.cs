@@ -28,11 +28,11 @@ public record Status(
 
 public sealed class StatusParser : IParser<Status>
 {
-    public bool IsMatch(string input) => input.Contains("hostname: ") || input.Contains("hibernating");
+    public bool IsMatch(string value) => value.Contains("hostname: ") || value.Contains("hibernating");
 
-    public Status Parse(string input)
+    public Status Parse(string value)
     {
-        var groups = input.Split('\n')
+        var groups = value.Split('\n')
             .Select(value => value.Split(':'))
             .Where(value => value.Length > 1 && !string.IsNullOrEmpty(value[0].Trim()) && !string.IsNullOrEmpty(value[1].Trim()))
             .ToDictionary(
@@ -82,7 +82,7 @@ public sealed class StatusParser : IParser<Status>
         }
         else
         {
-            hibernating = input.Contains("hibernating") && !input.Contains("not hibernating");
+            hibernating = value.Contains("hibernating") && !value.Contains("not hibernating");
         }
 
         string? localIp = null, publicIp = null;

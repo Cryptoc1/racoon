@@ -12,7 +12,7 @@ public sealed class RoundEndScoreParser : RegexParser<RoundEndScore>
     {
     }
 
-    protected override RoundEndScore Load(GroupCollection groups) => new(
+    protected override RoundEndScore Convert(GroupCollection groups) => new(
         int.Parse(groups["ct_score"].Value, CultureInfo.InvariantCulture),
         int.Parse(groups["t_score"].Value, CultureInfo.InvariantCulture),
         groups["winning_team"].Value

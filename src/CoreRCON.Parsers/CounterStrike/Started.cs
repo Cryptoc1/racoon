@@ -11,5 +11,5 @@ public sealed class StartedParser : RegexParser<Started>
     {
     }
 
-    protected override Started Load(GroupCollection groups) => new();
+    protected override Started Convert(GroupCollection groups) => new();
 }

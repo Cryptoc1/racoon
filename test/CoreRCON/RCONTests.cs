@@ -1,22 +1,34 @@
+using System.Configuration.Assemblies;
 using System.Net;
+using System.Net.Sockets;
 
 namespace CoreRCON.Tests;
 
 public sealed class RCONTests
 {
     [Fact]
-    public void Dispose_DoesNotThrow_WhenNotConnected()
+    public async Task ConnectAsync_Throws_RCONException_WhenSocketFailsToConnect()
     {
-        var rcon = new RCON(IPAddress.Loopback, 0, string.Empty);
+        using var console = new RCON(IPAddress.None, 0, string.Empty, new(TimeSpan.Zero));
 
-        // NOTE: implicit failure if an exception is thrown
-        rcon.Dispose();
+        var exception = await Assert.ThrowsAsync<RCONException>(() => console.ConnectAsync());
+        Assert.StartsWith("An attempt to connect to with the host failed.", exception.Message);
+        Assert.IsType<SocketException>(exception.InnerException);
     }
 
     [Fact]
-    public async Task SendCommandAsync_Throws_WhenNotConnected()
+    public void Dispose_DoesNotThrow_WhenNotConnected()
     {
-        var rcon = new RCON(IPAddress.Loopback, 0, string.Empty);
+        var console = new RCON(IPAddress.None, 0, string.Empty);
+
+        // NOTE: implicit failure if an exception is thrown
+        console.Dispose();
+    }
+
+    [Fact]
+    public async Task SendCommandAsync_Throws_RCONException_WhenNotConnected()
+    {
+        var rcon = new RCON(IPAddress.None, 0, string.Empty);
 
         var exception = await Assert.ThrowsAsync<RCONException>(() => rcon.SendCommandAsync("status"));
         Assert.StartsWith("The connection has not been created.", exception.Message);

@@ -21,7 +21,7 @@ public sealed class DamageEventParser : RegexParser<DamageEvent>
     {
     }
 
-    protected override DamageEvent Load(GroupCollection groups) => new(
+    protected override DamageEvent Convert(GroupCollection groups) => new(
         int.Parse(groups["ArmorDamage"].Value, CultureInfo.InvariantCulture),
         PlayerParser.Shared.Parse(groups["Attacker"]),
         int.Parse(groups["Damage"].Value, CultureInfo.InvariantCulture),

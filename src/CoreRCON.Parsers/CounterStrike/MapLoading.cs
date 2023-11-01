@@ -11,5 +11,5 @@ public sealed class MapLoadingParser : RegexParser<MapLoading>
     {
     }
 
-    protected override MapLoading Load(GroupCollection groups) => new(groups["Map"].Value);
+    protected override MapLoading Convert(GroupCollection groups) => new(groups["Map"].Value);
 }

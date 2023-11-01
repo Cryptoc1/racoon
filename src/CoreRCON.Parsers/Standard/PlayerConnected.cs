@@ -13,7 +13,7 @@ public sealed class PlayerConnectedParser : RegexParser<PlayerConnected>
     {
     }
 
-    protected override PlayerConnected Load(GroupCollection groups) => new(
+    protected override PlayerConnected Convert(GroupCollection groups) => new(
         new(IPAddress.Parse(groups["Host"].Value), int.Parse(groups["Port"].Value, CultureInfo.InvariantCulture)),
         PlayerParser.Shared.Parse(groups["Player"])
     );

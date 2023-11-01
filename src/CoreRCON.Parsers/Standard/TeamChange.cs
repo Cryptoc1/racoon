@@ -11,7 +11,7 @@ public sealed class TeamChangeParser : RegexParser<TeamChange>
     {
     }
 
-    protected override TeamChange Load(GroupCollection groups) => new(
+    protected override TeamChange Convert(GroupCollection groups) => new(
         PlayerParser.Shared.Parse(groups["Player"]),
         groups["Team"].Value
     );
