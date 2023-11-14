@@ -5,7 +5,7 @@ internal static class TaskExtensions
     public static async Task<T> WaitAsync<T>(this Task<T> task, TimeSpan? timeout)
     {
         timeout ??= TimeSpan.Zero;
-        if (timeout == TimeSpan.Zero || (task.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted))
+        if (timeout == TimeSpan.Zero || (task.Status is TaskStatus.Canceled or TaskStatus.RanToCompletion or TaskStatus.Faulted))
         {
             return await task;
         }

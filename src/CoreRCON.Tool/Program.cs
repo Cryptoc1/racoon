@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using CoreRCON;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -9,7 +10,7 @@ using RCONStatus = CoreRCON.Parsers.Standard.Status;
 var app = new CommandApp<ShellCommand>();
 app.Configure(options =>
 {
-    options.SetApplicationName("rcon");
+    options.SetApplicationName("CoreRCON.Tool");
     options.PropagateExceptions();
 });
 
@@ -19,6 +20,12 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, ShellParameters parameters)
     {
+        if (!parameters.NoLogo)
+        {
+            AnsiConsole.Write(
+                new FigletText("CoreRCON.Tool").Color(Color.MediumSpringGreen));
+        }
+
         var host = await ResolveHost(parameters.Host);
         if (host is null)
         {
@@ -36,45 +43,39 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
             return ShellExitCode.FailedToConnect;
         }
 
-        bool error = false;
-        var status = await console.SendCommandAsync<RCONStatus>("status");
+        var prompt = new CommandPrompt(
+            await console.SendCommandAsync<RCONStatus>("status"));
 
         while (console.ConnectionState is RCONConnectionState.Authenticated)
         {
-            var command = AnsiConsole.Ask<string>($"[bold {(error ? "orange1" : "lime")}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/]").Trim();
-            error = false;
-
-            if (string.IsNullOrWhiteSpace(command))
-            {
-                continue;
-            }
-
+            var command = AnsiConsole.Prompt(prompt);
             if (command[0] is not ':')
             {
                 try
                 {
                     var result = await console.SendCommandAsync(command);
                     AnsiConsole.WriteLine(result);
+
+                    prompt.Error = result.StartsWith("unknown command", StringComparison.OrdinalIgnoreCase);
                 }
                 catch (RCONCommandException exception)
                 {
                     AnsiConsole.WriteException(exception);
-                    error = true;
+                    prompt.Error = true;
                 }
-
-                continue;
             }
 
             if (command.Equals(":clear", StringComparison.OrdinalIgnoreCase))
             {
                 AnsiConsole.Clear();
-                continue;
             }
 
             if (command.Equals(":q", StringComparison.OrdinalIgnoreCase))
             {
                 return 0;
             }
+
+            prompt.AddHistory(command);
         }
 
         return ShellExitCode.Disconnected;
@@ -127,6 +128,141 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
     }
 }
 
+internal sealed class CommandPrompt(RCONStatus status, int capacity = 1024) : IPrompt<string>
+{
+    public bool Error { get; set; }
+
+    private readonly List<string> _history = new(capacity);
+
+    public string Show(IAnsiConsole console) => ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
+    public async Task<string> ShowAsync(IAnsiConsole console, CancellationToken cancellation)
+    {
+        _ = WritePrompt(console);
+        var value = await console.RunExclusive(async () =>
+        {
+            var position = _history.Count;
+            var text = new StringBuilder();
+            while (true)
+            {
+                var key = await console.Input.ReadKeyAsync(true, cancellation);
+                if (!key.HasValue)
+                {
+                    continue;
+                }
+
+                if (key.Value.Key is ConsoleKey.Enter)
+                {
+                    if (text.Length is 0)
+                    {
+                        continue;
+                    }
+
+                    console.WriteLine();
+                    return text.ToString();
+                }
+
+                if (_history.Count is not 0 && key.Value.Key is ConsoleKey.UpArrow)
+                {
+                    var value = _history[position = Math.Max(--position, 0)];
+                    console.Write(string.Concat(
+                        Enumerable.Range(0, text.Length)
+                            .Select(_ => "\b \b")));
+
+                    text = text.Clear().Append(value);
+                    console.Write(value);
+
+                    continue;
+                }
+
+                if (_history.Count is not 0 && key.Value.Key is ConsoleKey.DownArrow)
+                {
+                    var value = (position = Math.Min(++position, _history.Count)) == _history.Count
+                        ? string.Empty
+                        : _history[position];
+
+                    console.Write(string.Concat(
+                        Enumerable.Range(0, text.Length)
+                            .Select(_ => "\b \b")));
+
+                    text = text.Clear().Append(value);
+                    console.Write(value);
+                }
+
+                if (key.Value.Key is ConsoleKey.Backspace)
+                {
+                    if (text.Length > 0)
+                    {
+                        text = text.Remove(text.Length - 1, 1);
+                        console.Write("\b \b");
+                    }
+
+                    continue;
+                }
+
+                var character = key.Value.KeyChar;
+                if (!char.IsControl(character))
+                {
+                    text = text.Append(character);
+                    console.Write(character.ToString());
+
+                    continue;
+                }
+            }
+        });
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return await ShowAsync(console, cancellation);
+        }
+
+        return value.Trim();
+    }
+
+    public void AddHistory(string command)
+    {
+        if (_history.Count == _history.Capacity)
+        {
+            _history.RemoveAt(0);
+        }
+
+        _history.Add(command);
+    }
+
+    private string? FindHistory(StringBuilder buffer)
+    {
+        if (buffer.Length is 0)
+        {
+            return _history[^1];
+        }
+
+        var value = buffer.ToString();
+        return _history.FindLast(
+            command =>
+            {
+                if (command.Length < buffer.Length)
+                {
+                    return false;
+                }
+
+                ReadOnlySpan<char> chars = command;
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    if (buffer[i] != chars[i]) return false;
+                }
+
+                return true;
+            });
+    }
+
+    private int WritePrompt(IAnsiConsole console)
+    {
+        var markup = new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] ");
+        console.Write(markup);
+
+        return markup.Length;
+    }
+}
+
 internal static class NerdFontIcon
 {
     public const string AngleRight = "\uf105";
@@ -147,14 +283,17 @@ internal sealed class ShellParameters : CommandSettings
     [CommandArgument(0, "<host>")]
     public string Host { get; init; } = default!;
 
+    [CommandOption("--no-logo")]
+    public bool NoLogo { get; init; } = Environment.GetEnvironmentVariable("CORERCON_NO_LOGO") == bool.TrueString;
+
     [CommandArgument(1, "[password]")]
-    public string Password { get; init; } = default!;
+    public string Password { get; init; } = string.Empty;
 
     [CommandOption("-p|--port")]
     public ushort Port { get; init; } = 27015;
 
     [CommandOption("-t|--timeout")]
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(2.5);
 
     [CommandOption("--use-koraktor")]
     public bool UseKoraktorMethod { get; init; }
