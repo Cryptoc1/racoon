@@ -19,6 +19,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 {
     // Allows us to keep track of when authentication succeeds, so we can block Connect from returning until it does.
     private TaskCompletionSource<bool>? _authenticationCompletion;
+    private RCONConnection? _connection;
 
     // When generating the packet ID, use a never-been-used (for automatic packets) ID.
     private int _packetId = 1;
@@ -26,7 +27,6 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     // NOTE: Use (1,1) to lock connection per command (only a single command may execute against the connection at a time)
     private readonly SemaphoreSlim _commandLock = new(1, 1);
     private readonly ConcurrentDictionary<int, TaskCompletionSource<string>> _completionByPacketId = new();
-    private RCONConnection? _connection;
     private readonly IPEndPoint _endpoint = endpoint;
     private readonly RCONOptions _options = options ?? new();
     private readonly string _password = password;
@@ -174,8 +174,8 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
             }
 
             // NOTE: Koraktor method: this packet did not indicate completion, aggregate body and continue recieving packets
-            _responseByPacketId[packet.Id] = (body ?? new()).Append(packet.Body);
-            _completionByPacketId[packet.Id] = completion;
+            _responseByPacketId[ packet.Id ] = (body ?? new()).Append(packet.Body);
+            _completionByPacketId[ packet.Id ] = completion;
         }
     }
 
@@ -216,7 +216,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
           TaskCompletionSource *could* be initialized with TaskCreationOptions.RunContinuationsAsynchronously, but this library is designed to be able to run without its own thread.
           See: https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#always-create-taskcompletionsourcet-with-taskcreationoptionsruncontinuationsasynchronously
         */
-        var completion = _completionByPacketId[packet.Id] = new TaskCompletionSource<string>();
+        var completion = _completionByPacketId[ packet.Id ] = new TaskCompletionSource<string>();
 
         Task completed;
         try
@@ -263,7 +263,6 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
     private sealed class RCONConnection : IDisposable
     {
-        private readonly ArrayPool<byte> _arrayPool;
         private readonly Pipe _pipe;
         private readonly Socket _socket;
 
@@ -272,7 +271,6 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
         public RCONConnection(Socket socket, Action? onClosed, Action<RCONPacket> onPacket)
         {
-            _arrayPool = ArrayPool<byte>.Shared;
             _pipe = new();
             _socket = socket;
 
@@ -294,10 +292,9 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
                 while (socket.Connected)
                 {
                     // read from socket
-                    int read = await socket.ReceiveAsync(
-                        writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int)),
-                        SocketFlags.None)
-                        .ConfigureAwait(false);
+                    int read = await ReceiveAsync(
+                        socket,
+                        writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int)));
 
                     if (read is 0)
                     {
@@ -321,6 +318,26 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
                 onClosed?.Invoke();
             }
+
+            static async ValueTask<int> ReceiveAsync(Socket socket, Memory<byte> buffer)
+            {
+#if NETSTANDARD2_1_OR_GREATER
+                return await socket.ReceiveAsync(
+                    buffer,
+                    SocketFlags.None,
+                    CancellationToken.None).ConfigureAwait(false);
+#else
+                if (buffer.Length is 0)
+                {
+                    return 0;
+                }
+
+                return await SocketTaskExtensions.ReceiveAsync(
+                    socket,
+                    BufferHelper.AsSegment(buffer),
+                    SocketFlags.None).ConfigureAwait(false);
+#endif
+            }
         }
 
         private static async Task Receive(PipeReader reader, Action<RCONPacket> onPacket)
@@ -343,6 +360,7 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
                         reader.AdvanceTo(start, buffer.End);
                         continue;
                     }
+
 
                     int length = BitConverter.ToInt32(buffer.Slice(start, sizeof(int)).ToArray(), 0) + sizeof(int);
                     if (buffer.Length >= length)
@@ -377,19 +395,29 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
 
         public async Task SendAsync(RCONPacket packet)
         {
-            var buffer = _arrayPool.Rent(packet.Size + sizeof(int));
+            using var rented = MemoryPool<byte>.Shared.Rent(packet.Size + sizeof(int));
 
-            try
-            {
-                var written = packet.GetBytes(buffer);
-                var segment = new ArraySegment<byte>(buffer, 0, written);
+            var written = packet.GetBytes(rented.Memory.Span);
+            await SendAsync(_socket, rented.Memory[ ..written ]);
 
-                await _socket.SendAsync(segment, SocketFlags.None)
-                    .ConfigureAwait(false);
-            }
-            finally
+            static async ValueTask<int> SendAsync(Socket socket, ReadOnlyMemory<byte> buffer)
             {
-                _arrayPool.Return(buffer);
+#if NETSTANDARD2_1_OR_GREATER
+                return await socket.SendAsync(
+                    buffer,
+                    SocketFlags.None,
+                    CancellationToken.None).ConfigureAwait(false);
+#else
+                if (buffer.Length is 0)
+                {
+                    return 0;
+                }
+
+                return await SocketTaskExtensions.SendAsync(
+                    socket,
+                    BufferHelper.AsSegment(buffer),
+                    SocketFlags.None).ConfigureAwait(false);
+#endif
             }
         }
     }

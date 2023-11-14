@@ -30,22 +30,27 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
         Write(buffer, ref written, BitConverter.GetBytes(Id));
         Write(buffer, ref written, BitConverter.GetBytes((int)Type));
         Write(buffer, ref written, Encoding.UTF8.GetBytes(Body));
-        Write(buffer, ref written, [0x00, 0x00]);
+        Write(buffer, ref written, [ 0x00, 0x00 ]);
 
         return written;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void Write(Span<byte> buffer, ref int offset, Span<byte> value)
+        static void Write(Span<byte> buffer, ref int offset, ReadOnlySpan<byte> value)
         {
             for (var i = 0; i < value.Length; i++, offset++)
             {
-                buffer[offset] = value[i];
+                buffer[ offset ] = value[ i ];
             }
         }
     }
 
     public static bool TryFromBytes(byte[] buffer, out RCONPacket packet)
     {
+#if NETSTANDARD2_1_OR_GREATER
+        ReadOnlySpan<byte> span = buffer;
+        return TryFromBytes(span, out packet);
+#else
+
         if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
         {
             var size = BitConverter.ToInt32(buffer, 0);
@@ -65,7 +70,35 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
 
         packet = default;
         return false;
+#endif
     }
+
+#if NETSTANDARD2_1_OR_GREATER
+    public static bool TryFromBytes(ReadOnlySpan<byte> buffer, out RCONPacket packet)
+    {
+        if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
+        {
+            var size = BitConverter.ToInt32(buffer);
+            if (size >= RCONPacketDefaults.MinPacketSize && buffer.Length == size + sizeof(int))
+            {
+                if (BufferHelper.TryGetString(
+                    buffer.Slice(RCONPacketDefaults.MinPacketSize + 2, size - RCONPacketDefaults.MinPacketSize),
+                    out var body))
+                {
+                    packet = new(
+                        BitConverter.ToInt32(buffer[ 4.. ]),
+                        (RCONPacketType)BitConverter.ToInt32(buffer[ 8.. ]),
+                        NewLineSanitizer.Sanitize(body).TrimEnd());
+
+                    return true;
+                }
+            }
+        }
+
+        packet = default;
+        return false;
+    }
+#endif
 }
 
 public static class RCONPacketDefaults

@@ -1,4 +1,4 @@
-namespace CoreRCON.Internal;
+﻿namespace CoreRCON.Internal;
 
 internal static class TaskExtensions
 {

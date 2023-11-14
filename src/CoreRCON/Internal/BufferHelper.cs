@@ -1,9 +1,23 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CoreRCON.Internal;
 
 internal static class BufferHelper
 {
+#if NETSTANDARD2_1_OR_GREATER
+    [Obsolete("Prefer usage of Memory types.")]
+#endif
+    public static ArraySegment<byte> AsSegment(this ReadOnlyMemory<byte> buffer)
+    {
+        if (!MemoryMarshal.TryGetArray(buffer, out var segment))
+        {
+            segment = new(buffer.ToArray());
+        }
+
+        return segment;
+    }
+
     /// <summary> Step through a byte array and read a null-terminated string. </summary>
     /// <param name="bytes">Byte array.</param>
     /// <param name="start">Offset to start reading from.</param>
@@ -67,6 +81,12 @@ internal static class BufferHelper
 
     public static bool TryGetString(byte[] buffer, int offset, int length, out string value)
     {
+#if NETSTANDARD2_1_OR_GREATER
+        ReadOnlySpan<byte> casted = buffer;
+        return TryGetString(
+            casted.Slice(offset, length),
+            out value);
+#else
         try
         {
             value = Encoding.UTF8.GetString(buffer, offset, Math.Min(length, buffer.Length));
@@ -77,5 +97,22 @@ internal static class BufferHelper
             value = string.Empty;
             return false;
         }
+#endif
     }
+
+#if NETSTANDARD2_1_OR_GREATER
+    public static bool TryGetString(ReadOnlySpan<byte> buffer, out string value)
+    {
+        try
+        {
+            value = Encoding.UTF8.GetString(buffer);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            value = string.Empty;
+            return false;
+        }
+    }
+#endif
 }

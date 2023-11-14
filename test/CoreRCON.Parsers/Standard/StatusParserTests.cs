@@ -34,7 +34,7 @@ sourcetv[0] : 10.0.0.4:27020 (public 123.45.67.89:27020) delay 105.0s
 players  : 1 humans, 2 bots (0 max) (not hibernating) (unreserved)",
         new(
             "TEST",
-            new(IPEndPoint.Parse("10.0.0.4:27015"), IPEndPoint.Parse("123.45.67.89:27015")),
+            new(new(IPAddress.Parse("10.0.0.4"), 27015), new(IPAddress.Parse("123.45.67.89"), 27015)),
             false,
             "Linux",
             default,
@@ -58,7 +58,7 @@ sourcetv[0] : 10.0.0.4:27020 (public 123.45.67.89:27020) delay 105.0s
 players  : 0 humans, 0 bots (0 max) (hibernating) (unreserved)",
         new(
             "TEST",
-            new(IPEndPoint.Parse("10.0.0.4:27015"), IPEndPoint.Parse("123.45.67.89:27015")),
+            new(new(IPAddress.Parse("10.0.0.4"), 27015), new(IPAddress.Parse("123.45.67.89"), 27015)),
             true,
             "Linux",
             default,
