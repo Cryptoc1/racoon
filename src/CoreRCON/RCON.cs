@@ -4,7 +4,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using CoreRCON.Extensions;
+using CoreRCON.Internal;
 using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
 using CoreRCON.Parsers.Abstractions;

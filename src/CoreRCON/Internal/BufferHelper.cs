@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CoreRCON.Extensions;
+namespace CoreRCON.Internal;
 
 internal static class BufferHelper
 {

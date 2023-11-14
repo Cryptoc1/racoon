@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace CoreRCON.Extensions;
+namespace CoreRCON.Internal;
 
 internal static class SocketExtensions
 {

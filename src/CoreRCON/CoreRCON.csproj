@@ -8,12 +8,8 @@
     <Version>6.0.0</Version>
   </PropertyGroup>
 
-  <!-- <Target Name="PostcompileScript" AfterTargets="Build" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
-    <Exec Command="dotnet pack - -no-build - -configuration $(Configuration)" />
-  </Target> -->
-
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0-rc.2.23479.6" />
   </ItemGroup>
 
   <ItemGroup>

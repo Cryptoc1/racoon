@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using CoreRCON.Extensions;
+using CoreRCON.Internal;
 using CoreRCON.PacketFormats;
 
 namespace CoreRCON;

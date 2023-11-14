@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
-using CoreRCON.Extensions;
+using CoreRCON.Internal;
 
 namespace CoreRCON.PacketFormats;
 

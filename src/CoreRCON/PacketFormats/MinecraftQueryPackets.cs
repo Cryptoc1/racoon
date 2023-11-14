@@ -1,4 +1,4 @@
-﻿using CoreRCON.Extensions;
+﻿using CoreRCON.Internal;
 
 namespace CoreRCON.PacketFormats;
 

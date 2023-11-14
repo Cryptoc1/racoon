@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using CoreRCON.Extensions;
+using CoreRCON.Internal;
 
 namespace CoreRCON.PacketFormats;
 

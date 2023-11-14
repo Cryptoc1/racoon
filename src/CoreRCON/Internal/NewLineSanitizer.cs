@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace CoreRCON.Extensions;
+namespace CoreRCON.Internal;
 
 internal static class NewLineSanitizer
 {
