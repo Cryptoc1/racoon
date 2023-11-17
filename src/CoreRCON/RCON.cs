@@ -22,22 +22,22 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     private RCONConnection? _connection;
 
     // When generating the packet ID, use a never-been-used (for automatic packets) ID.
-    private int _packetId = 1;
+    private volatile int _packetId = 1;
 
     // NOTE: Use (1,1) to lock connection per command (only a single command may execute against the connection at a time)
     private readonly SemaphoreSlim _commandLock = new(1, 1);
-    private readonly ConcurrentDictionary<int, TaskCompletionSource<string>> _completionByPacketId = new();
+    private readonly ConcurrentDictionary<int, RCONResponse> _responseByPacketId = new();
     private readonly IPEndPoint _endpoint = endpoint;
     private readonly RCONOptions _options = options ?? new();
     private readonly string _password = password;
-    private readonly Dictionary<int, StringBuilder> _responseByPacketId = [];
+    // private readonly Dictionary<int, StringBuilder> _responseByPacketId = [];
 
     /// <summary> Indicates whether the underlying socket is connected. </summary>
     public RCONConnectionState ConnectionState => _authenticationCompletion?.Task.Status switch
     {
         null => RCONConnectionState.Disconnected,
-        < TaskStatus.RanToCompletion => _connection is null ? RCONConnectionState.Connecting : RCONConnectionState.Connected,
-        TaskStatus.RanToCompletion => _authenticationCompletion.Task.Result is true ? RCONConnectionState.Authenticated : RCONConnectionState.Connected,
+        < TaskStatus.RanToCompletion => _connection?.Connected is true ? RCONConnectionState.Connected : RCONConnectionState.Connecting,
+        TaskStatus.RanToCompletion => _connection?.Connected is true ? _authenticationCompletion.Task.Result is true ? RCONConnectionState.Authenticated : RCONConnectionState.Connected : RCONConnectionState.Disconnected,
         _ => RCONConnectionState.Disconnected,
     };
 
@@ -59,55 +59,68 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     /// <exception cref="RCONAuthenticationException"> Connection with the server was successful, but authentication failed. </exception>
     public async Task ConnectAsync()
     {
-        if (_authenticationCompletion is null)
+        if (_authenticationCompletion is not null)
         {
-            _authenticationCompletion = new();
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-            {
-                NoDelay = true,
-                ReceiveTimeout = (int)_options.Timeout.TotalMilliseconds,
-                SendTimeout = (int)_options.Timeout.TotalMilliseconds,
-            };
-
-            try
-            {
-                await socket.ConnectAsync(_endpoint)
-                    .ConfigureAwait(false);
-            }
-            catch (SocketException exception)
-            {
-                socket.Dispose();
-                socket = null;
-
-                // NOTE: reset completion, allow callers to implement retry logic
-                _authenticationCompletion = null;
-                throw new RCONException("An attempt to connect to with the host failed.", exception);
-            }
-
-            _connection = new RCONConnection(socket, OnDisconnected, OnPacketReceived);
-            await _connection.SendAsync(new(0, RCONPacketType.Auth, _password));
+            await Authenticated().ConfigureAwait(false);
+            return;
         }
 
-        bool authenticated;
+        _authenticationCompletion = new();
+        var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+        {
+            NoDelay = true,
+            ReceiveTimeout = (int)_options.Timeout.TotalMilliseconds,
+            SendTimeout = (int)_options.Timeout.TotalMilliseconds,
+        };
+
         try
         {
-            authenticated = await _authenticationCompletion.Task
-                .WaitAsync(_options.Timeout)
-                .ConfigureAwait(false);
+            await socket.ConnectAsync(_endpoint).ConfigureAwait(false);
         }
-        catch (TimeoutException timeout)
+        catch (SocketException exception)
         {
-            throw new RCONException("A timeout occurred while authenticating with the host.", timeout);
-        }
-        catch (Exception exception)
-        {
-            throw new RCONException("An unexpected error occurred while connecting to the host.", exception);
+            socket.Dispose();
+            socket = null;
+
+            // NOTE: reset completion, allow callers to implement retry logic
+            _authenticationCompletion = null;
+            throw new RCONException("An attempt to connect to with the host failed.", exception);
         }
 
-        if (!authenticated)
+        using (var cancellation = new CancellationTokenSource())
+        using (cancellation.Token.Register(_authenticationCompletion.SetCanceled))
         {
-            // authentication failed
-            throw new RCONAuthenticationException();
+            _connection = new RCONConnection(socket, OnDisconnected, OnPacketReceived);
+            if (_options.Timeout != TimeSpan.Zero)
+            {
+                cancellation.CancelAfter(_options.Timeout);
+            }
+
+            await Authenticated(async () =>
+            {
+                await _connection.SendAsync(new(0, RCONPacketType.Auth, _password), cancellation.Token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
+        async Task Authenticated(Func<Task>? authenticate = null)
+        {
+            try
+            {
+                if (authenticate is not null)
+                {
+                    await authenticate().ConfigureAwait(false);
+                }
+
+                if (!await _authenticationCompletion.Task) throw new RCONAuthenticationException();
+            }
+            catch (TaskCanceledException exception)
+            {
+                _connection?.Dispose();
+                _connection = null;
+
+                _authenticationCompletion = null;
+                throw new RCONAuthenticationException($"Failed to authenticate with the host within the configured timeout of '{_options.Timeout}'.", exception);
+            }
         }
     }
 
@@ -123,20 +136,12 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
         _commandLock.Dispose();
     }
 
-    private void EnsureConnected()
-    {
-        if (_connection is null)
-        {
-            throw new RCONException($"The connection has not been created. Ensure '{nameof(ConnectAsync)}' is invoked prior to {nameof(SendCommandAsync)}.");
-        }
-    }
-
     private void OnDisconnected()
     {
-        _authenticationCompletion = null;
         _connection!.Dispose();
         _connection = null;
 
+        _authenticationCompletion = null;
         Disconnected?.Invoke();
     }
 
@@ -148,34 +153,31 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
             // Failed auth responses return with an ID of -1
             if (packet.Id is -1)
             {
-                _authenticationCompletion!.SetResult(false);
+                _authenticationCompletion?.SetResult(false);
             }
 
             // inform success
-            _authenticationCompletion!.SetResult(true);
+            _authenticationCompletion?.SetResult(true);
             return;
         }
 
-        if (_completionByPacketId.TryRemove(packet.Id, out var completion))
+        if (_responseByPacketId.TryRemove(packet.Id, out var response))
         {
             if (!_options.UseKoraktorMethod)
             {
-                completion.SetResult(packet.Body);
+                response.Complete(packet.Body);
                 return;
             }
 
             // NOTE: Koraktor method: if an existing response body exists, and this packet indicates completion, complete the request
-            if (_responseByPacketId.TryGetValue(packet.Id, out var body) && (packet.Body is "" or "\0\u0001\0\0"))
+            if (packet.Body is "" or "\0\u0001\0\0")
             {
-                _responseByPacketId.Remove(packet.Id);
-                completion.SetResult(body.ToString());
-
+                response.Complete(packet.Body);
                 return;
             }
 
-            // NOTE: Koraktor method: this packet did not indicate completion, aggregate body and continue recieving packets
-            _responseByPacketId[ packet.Id ] = (body ?? new()).Append(packet.Body);
-            _completionByPacketId[ packet.Id ] = completion;
+            response.Append(packet.Body);
+            _responseByPacketId[packet.Id] = response;
         }
     }
 
@@ -183,10 +185,10 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     /// <typeparam name="T"> The type of command response. </typeparam>
     /// <param name="command"> The command text to be sent. </param>
     /// <exception cref="RCONCommandException"> An error occurred while sending the command. </exception>
-    public async Task<T> SendCommandAsync<T>(string command)
+    public async Task<T> SendCommandAsync<T>(string command, CancellationToken cancellation = default)
         where T : class, IParseable<T>
     {
-        var response = await SendCommandAsync(command).ConfigureAwait(false);
+        var response = await SendCommandAsync(command, cancellation).ConfigureAwait(false);
 
         var parser = _options.Parsers.Get<T>();
         if (!parser.IsMatch(response))
@@ -200,224 +202,252 @@ public sealed class RCON(IPEndPoint endpoint, string password, RCONOptions? opti
     /// <summary> Send a RCON Command. </summary>
     /// <param name="command"> The command text to be sent. </param>
     /// <exception cref="RCONCommandException"> An error occurred while sending the command. </exception>
-    public async Task<string> SendCommandAsync(string command)
+    public async Task<string> SendCommandAsync(string command, CancellationToken cancellation = default)
     {
-        EnsureConnected();
+        if (_connection is null) throw new RCONCommandException($"The connection has not been established. Ensure '{nameof(ConnectAsync)}' is called before '{nameof(SendCommandAsync)}'.", command);
 
-        // lock client for the execution of this command
-        await _commandLock.WaitAsync().ConfigureAwait(false);
+        await _commandLock.WaitAsync(cancellation).ConfigureAwait(false);
 
         var packet = new RCONPacket(
             Interlocked.Increment(ref _packetId),
             RCONPacketType.ExecCommand,
             command);
 
-        /*
-          TaskCompletionSource *could* be initialized with TaskCreationOptions.RunContinuationsAsynchronously, but this library is designed to be able to run without its own thread.
-          See: https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#always-create-taskcompletionsourcet-with-taskcreationoptionsruncontinuationsasynchronously
-        */
-        var completion = _completionByPacketId[ packet.Id ] = new TaskCompletionSource<string>();
-
-        Task completed;
+        var response = _responseByPacketId[packet.Id] = new RCONResponse();
         try
         {
-            await SendPacketAsync(packet).ConfigureAwait(false);
-            completed = await Task.WhenAny(completion.Task, _connection!.Closed)
-                .WaitAsync(_options.Timeout)
-                .ConfigureAwait(false);
-        }
-        catch (TimeoutException exception)
-        {
-            throw RCONCommandException.Timeout(command, exception);
+            using (var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
+            using (cancellationSource.Token.Register(response.Cancel))
+            {
+                await _connection.SendAsync(packet, cancellationSource.Token).ConfigureAwait(false);
+                if (packet.Type is RCONPacketType.ExecCommand && _options.UseKoraktorMethod)
+                {
+                    // NOTE: Koraktor method: send an additional empty packet; the server will respond with an empty packet, indicating completion of the request
+                    packet = new(packet.Id, RCONPacketType.Response, string.Empty);
+                    await _connection.SendAsync(packet, cancellationSource.Token).ConfigureAwait(false);
+                }
+
+                if (_options.Timeout != TimeSpan.Zero)
+                {
+                    cancellationSource.CancelAfter(_options.Timeout);
+                }
+
+                var completed = await Task.WhenAny(
+                    response.Completed,
+                    _connection.Closed()).ConfigureAwait(false);
+
+                if (completed == response.Completed)
+                {
+                    try
+                    {
+                        return await response.Completed.ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException exception)
+                    {
+                        throw new RCONCommandException($"Failed to execute command within the configured timeout of '{_options.Timeout}'.", command, exception);
+                    }
+                }
+
+                throw RCONCommandException.Failed(command, completed.Exception);
+            }
         }
         finally
         {
-            if (_completionByPacketId.TryRemove(packet.Id, out _))
+            if (_responseByPacketId.TryRemove(packet.Id, out response))
             {
-                _responseByPacketId.Remove(packet.Id);
+                response.Cancel();
             }
 
             _commandLock.Release();
-        }
-
-        if (completed == completion.Task)
-        {
-            return await completion.Task;
-        }
-
-        throw RCONCommandException.Failed(command, completed.Exception);
-    }
-
-    private async Task SendPacketAsync(RCONPacket packet)
-    {
-        EnsureConnected();
-
-        await _connection!.SendAsync(packet);
-        if (packet.Type is RCONPacketType.ExecCommand && _options.UseKoraktorMethod)
-        {
-            // NOTE: Koraktor method: send an additional empty packet; the server will respond with an empty packet, indicating completion of the request
-            packet = new(packet.Id, RCONPacketType.Response, string.Empty);
-            await _connection.SendAsync(packet);
         }
     }
 
     private sealed class RCONConnection : IDisposable
     {
         private readonly Pipe _pipe;
-        private readonly Socket _socket;
+        public readonly Socket _socket;
 
-        /// <summary> A task which completes when the underlying pipe stops receiving data from the underlying socket. </summary>
-        public Task Closed { get; }
+        public bool Connected => _socket.Connected;
+        public Task Reading { get; }
+        public Task Writing { get; }
 
-        public RCONConnection(Socket socket, Action? onClosed, Action<RCONPacket> onPacket)
+        public RCONConnection(Socket socket, Action onClosed, Action<RCONPacket> onPacket)
         {
             _pipe = new();
             _socket = socket;
 
-            Closed = Task.WhenAny(
-                Read(_pipe.Writer, socket, onClosed),
-                Receive(_pipe.Reader, onPacket));
+            Writing = Write(_pipe.Writer, _socket, onClosed);
+            Reading = Read(_pipe.Reader, onPacket);
+        }
+
+        public async Task Closed()
+        {
+            _ = await Task.WhenAny(Reading, Writing).ConfigureAwait(false);
         }
 
         public void Dispose()
         {
-            if (_socket.Connected) _socket.Shutdown(SocketShutdown.Both);
+            _socket.Shutdown(SocketShutdown.Both);
             _socket.Dispose();
         }
 
-        private static async Task Read(PipeWriter writer, Socket socket, Action? onClosed)
+        private static async Task Write(PipeWriter writer, Socket socket, Action onClosed)
         {
-            try
+            while (socket.Connected)
             {
-                while (socket.Connected)
+                var buffer = writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int));
+                try
                 {
-                    // read from socket
-                    int read = await ReceiveAsync(
+#if NETSTANDARD2_1_OR_GREATER
+                    int read = await socket.ReceiveAsync(
+                        buffer,
+                        SocketFlags.None,
+                        CancellationToken.None).ConfigureAwait(false);
+#else
+                    int read = await SocketTaskExtensions.ReceiveAsync(
                         socket,
-                        writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int)));
-
+                        BufferHelper.AsSegment(buffer),
+                        SocketFlags.None).ConfigureAwait(false);
+#endif
                     if (read is 0)
                     {
                         break;
                     }
 
-                    // inform writer socket was read
                     writer.Advance(read);
+                }
+                catch
+                {
+                    break;
+                }
 
-                    var result = await writer.FlushAsync().ConfigureAwait(false);
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
+                var result = await writer.FlushAsync().ConfigureAwait(false);
+                if (result.IsCompleted)
+                {
+                    break;
                 }
             }
-            finally
-            {
-                await writer.FlushAsync().ConfigureAwait(false);
-                await writer.CompleteAsync().ConfigureAwait(false);
 
-                onClosed?.Invoke();
+            await writer.CompleteAsync().ConfigureAwait(false);
+            onClosed();
+        }
+
+        private static async Task Read(PipeReader reader, Action<RCONPacket> onPacket)
+        {
+            while (true)
+            {
+                var result = await reader.ReadAsync()
+                    .ConfigureAwait(false);
+
+                var buffer = result.Buffer;
+                var start = buffer.Start;
+
+                if (TryReadPacketSize(buffer, out var size) && buffer.Length >= (size += sizeof(int)))
+                {
+                    var end = buffer.GetPosition(size, start);
+                    if (RCONPacket.TryFromBytes(
+                        buffer.Slice(start, end).ToArray(),
+                        out var packet))
+                    {
+                        onPacket(packet);
+                    }
+
+                    reader.AdvanceTo(end);
+                }
+                else
+                {
+                    reader.AdvanceTo(start, buffer.End);
+                }
+
+                if ((buffer.IsEmpty && result.IsCompleted) || result.IsCompleted) break;
             }
 
-            static async ValueTask<int> ReceiveAsync(Socket socket, Memory<byte> buffer)
+            await reader.CompleteAsync().ConfigureAwait(false);
+
+            static bool TryReadPacketSize(in ReadOnlySequence<byte> buffer, out int size)
             {
+                if (buffer.Length >= sizeof(int))
+                {
+                    var data = buffer.Slice(buffer.Start, sizeof(int)).ToArray();
+
 #if NETSTANDARD2_1_OR_GREATER
-                return await socket.ReceiveAsync(
-                    buffer,
-                    SocketFlags.None,
-                    CancellationToken.None).ConfigureAwait(false);
+                    size = BitConverter.ToInt32(data);
 #else
-                if (buffer.Length is 0)
-                {
-                    return 0;
-                }
-
-                return await SocketTaskExtensions.ReceiveAsync(
-                    socket,
-                    BufferHelper.AsSegment(buffer),
-                    SocketFlags.None).ConfigureAwait(false);
+                    size = BitConverter.ToInt32(data, 0);
 #endif
-            }
-        }
-
-        private static async Task Receive(PipeReader reader, Action<RCONPacket> onPacket)
-        {
-            try
-            {
-                while (true)
-                {
-                    var result = await reader.ReadAsync().ConfigureAwait(false);
-                    var buffer = result.Buffer;
-                    var start = buffer.Start;
-
-                    if (buffer.Length < RCONPacketDefaults.MinPacketSize + sizeof(int))
-                    {
-                        if (result.IsCompleted)
-                        {
-                            break;
-                        }
-
-                        reader.AdvanceTo(start, buffer.End);
-                        continue;
-                    }
-
-
-                    int length = BitConverter.ToInt32(buffer.Slice(start, sizeof(int)).ToArray(), 0) + sizeof(int);
-                    if (buffer.Length >= length)
-                    {
-                        var end = buffer.GetPosition(length, start);
-
-                        var bytes = buffer.Slice(start, end).ToArray();
-                        if (RCONPacket.TryFromBytes(bytes, out var packet))
-                        {
-                            onPacket(packet);
-                        }
-
-                        reader.AdvanceTo(end);
-                    }
-                    else
-                    {
-                        reader.AdvanceTo(start, buffer.End);
-                    }
-
-                    if (buffer.IsEmpty && result.IsCompleted)
-                    {
-                        // escape
-                        break;
-                    }
+                    return true;
                 }
-            }
-            finally
-            {
-                await reader.CompleteAsync().ConfigureAwait(false);
+
+                size = default;
+                return false;
             }
         }
 
-        public async Task SendAsync(RCONPacket packet)
+        public async ValueTask SendAsync(RCONPacket packet, CancellationToken cancellation = default)
         {
+            if (!_socket.Connected) throw new RCONException($"The underlying socket is no longer connected.");
+
             using var rented = MemoryPool<byte>.Shared.Rent(packet.Size + sizeof(int));
 
             var written = packet.GetBytes(rented.Memory.Span);
-            await SendAsync(_socket, rented.Memory[ ..written ]);
-
-            static async ValueTask<int> SendAsync(Socket socket, ReadOnlyMemory<byte> buffer)
+            if (written < packet.Size + sizeof(int))
             {
-#if NETSTANDARD2_1_OR_GREATER
-                return await socket.SendAsync(
-                    buffer,
-                    SocketFlags.None,
-                    CancellationToken.None).ConfigureAwait(false);
-#else
-                if (buffer.Length is 0)
-                {
-                    return 0;
-                }
+                return;
+            }
 
-                return await SocketTaskExtensions.SendAsync(
-                    socket,
-                    BufferHelper.AsSegment(buffer),
-                    SocketFlags.None).ConfigureAwait(false);
+#if NETSTANDARD2_1_OR_GREATER
+            await _socket.SendAsync(
+                rented.Memory[..written],
+                SocketFlags.None,
+                cancellation).ConfigureAwait(false);
+#else
+            await _socket.SendAsync(
+                BufferHelper.AsSegment(rented.Memory[..written]),
+                SocketFlags.None).ConfigureAwait(false);
 #endif
+        }
+    }
+
+    private sealed class RCONResponse
+    {
+        private StringBuilder? body;
+        private readonly TaskCompletionSource<string> completion = new();
+
+        public Task<string> Completed => completion.Task;
+
+        public void Append(string content)
+        {
+            if (body is null)
+            {
+                body = new(content);
+                return;
+            }
+
+            body.Append(content);
+        }
+
+        public void Cancel()
+        {
+            if (completion.TrySetCanceled())
+            {
+                Reset();
+            }
+        }
+
+        public void Complete(string content)
+        {
+            var value = body?.Append(content).ToString() ?? content;
+            Reset();
+
+            completion.SetResult(value);
+        }
+
+        private void Reset()
+        {
+            if (body is not null)
+            {
+                body.Clear();
+                body = null;
             }
         }
     }

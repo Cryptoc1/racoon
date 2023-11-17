@@ -29,7 +29,7 @@ public class RCONAuthenticationException : RCONException
     {
     }
 
-    public RCONAuthenticationException(string message, Exception innerException) : base(message, innerException)
+    public RCONAuthenticationException(string message, Exception? inner) : base(message, inner)
     {
     }
 }
@@ -52,7 +52,4 @@ public class RCONCommandException : RCONException
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static RCONCommandException Failed(string command, Exception? inner = null) => new($"Failed to execute command '{command}'.", command, inner);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static RCONCommandException Timeout(string command, TimeoutException exception) => new($"A timeout occured while attempting to execute '{command}'.", command, exception);
 }

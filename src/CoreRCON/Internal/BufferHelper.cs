@@ -6,9 +6,9 @@ namespace CoreRCON.Internal;
 internal static class BufferHelper
 {
 #if NETSTANDARD2_1_OR_GREATER
-    [Obsolete("Prefer usage of Memory types.")]
+    [Obsolete("Prefer direct usage of Memory types.")]
 #endif
-    public static ArraySegment<byte> AsSegment(this ReadOnlyMemory<byte> buffer)
+    public static ArraySegment<byte> AsSegment(this in ReadOnlyMemory<byte> buffer)
     {
         if (!MemoryMarshal.TryGetArray(buffer, out var segment))
         {
@@ -35,7 +35,7 @@ internal static class BufferHelper
     {
         var result = new List<string>();
         var byteindex = start;
-        while (bytes[ byteindex ] != 0x00)
+        while (bytes[byteindex] != 0x00)
         {
             result.Add(bytes.ReadNullTerminatedString(byteindex, ref byteindex));
         }
@@ -47,7 +47,7 @@ internal static class BufferHelper
     {
         var result = new Dictionary<string, string>();
         var byteindex = start;
-        while (bytes[ byteindex ] != 0x00)
+        while (bytes[byteindex] != 0x00)
         {
             result.Add(bytes.ReadNullTerminatedString(byteindex, ref byteindex), bytes.ReadNullTerminatedString(byteindex, ref byteindex));
         }
@@ -79,7 +79,7 @@ internal static class BufferHelper
         return BitConverter.ToSingle(bytes, start);
     }
 
-    public static bool TryGetString(byte[] buffer, int offset, int length, out string value)
+    public static bool TryGetString(in byte[] buffer, int offset, int length, out string value)
     {
 #if NETSTANDARD2_1_OR_GREATER
         ReadOnlySpan<byte> casted = buffer;
@@ -101,7 +101,7 @@ internal static class BufferHelper
     }
 
 #if NETSTANDARD2_1_OR_GREATER
-    public static bool TryGetString(ReadOnlySpan<byte> buffer, out string value)
+    public static bool TryGetString(in ReadOnlySpan<byte> buffer, out string value)
     {
         try
         {

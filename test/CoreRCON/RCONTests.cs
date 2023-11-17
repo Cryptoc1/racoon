@@ -26,11 +26,11 @@ public sealed class RCONTests
     }
 
     [Fact]
-    public async Task SendCommandAsync_Throws_RCONException_WhenNotConnected()
+    public async Task SendCommandAsync_Throws_RCONCommandException_WhenNotConnected()
     {
         var rcon = new RCON(IPAddress.None, 0, string.Empty);
 
-        var exception = await Assert.ThrowsAsync<RCONException>(() => rcon.SendCommandAsync("status"));
-        Assert.StartsWith("The connection has not been created.", exception.Message);
+        var exception = await Assert.ThrowsAsync<RCONCommandException>(() => rcon.SendCommandAsync("status"));
+        Assert.StartsWith("The connection has not been", exception.Message);
     }
 }

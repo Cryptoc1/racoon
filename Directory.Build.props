@@ -17,7 +17,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <RunAnalyzers>true</RunAnalyzers>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <AnalysisLevel>8.0-recommended</AnalysisLevel>
   </PropertyGroup>
 
   <!-- NuGet/AssemblyInfo -->
@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*-*" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

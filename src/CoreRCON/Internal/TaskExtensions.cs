@@ -2,6 +2,7 @@
 
 internal static class TaskExtensions
 {
+    [Obsolete]
     public static async Task<T> WaitAsync<T>(this Task<T> task, TimeSpan? timeout)
     {
         timeout ??= TimeSpan.Zero;

@@ -20,7 +20,7 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
     /// <returns> The number of bytes written. </returns>
     /// <exception cref="ArgumentOutOfRangeException"> The given buffer is not large enough to serialize the packet. </exception>
     /// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
-    public int GetBytes(Span<byte> buffer)
+    public int GetBytes(in Span<byte> buffer)
     {
         var size = Size;
         if (buffer.Length < size + sizeof(int)) throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Buffer must be have a length of at least {size + sizeof(int)} to serialize packet.");
@@ -30,27 +30,26 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
         Write(buffer, ref written, BitConverter.GetBytes(Id));
         Write(buffer, ref written, BitConverter.GetBytes((int)Type));
         Write(buffer, ref written, Encoding.UTF8.GetBytes(Body));
-        Write(buffer, ref written, [ 0x00, 0x00 ]);
+        Write(buffer, ref written, [0x00, 0x00]);
 
         return written;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void Write(Span<byte> buffer, ref int offset, ReadOnlySpan<byte> value)
+        static void Write(in Span<byte> buffer, ref int written, in ReadOnlySpan<byte> value)
         {
-            for (var i = 0; i < value.Length; i++, offset++)
+            for (var i = 0; i < value.Length; i++, written++)
             {
-                buffer[ offset ] = value[ i ];
+                buffer[written] = value[i];
             }
         }
     }
 
-    public static bool TryFromBytes(byte[] buffer, out RCONPacket packet)
+    public static bool TryFromBytes(in byte[] buffer, out RCONPacket packet)
     {
 #if NETSTANDARD2_1_OR_GREATER
-        ReadOnlySpan<byte> span = buffer;
-        return TryFromBytes(span, out packet);
+        ReadOnlySpan<byte> casted = buffer;
+        return TryFromBytes(casted, out packet);
 #else
-
         if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
         {
             var size = BitConverter.ToInt32(buffer, 0);
@@ -74,11 +73,11 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
     }
 
 #if NETSTANDARD2_1_OR_GREATER
-    public static bool TryFromBytes(ReadOnlySpan<byte> buffer, out RCONPacket packet)
+    public static bool TryFromBytes(in ReadOnlySpan<byte> buffer, out RCONPacket packet)
     {
         if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
         {
-            var size = BitConverter.ToInt32(buffer);
+            var size = BitConverter.ToInt32(buffer[..sizeof(int)]);
             if (size >= RCONPacketDefaults.MinPacketSize && buffer.Length == size + sizeof(int))
             {
                 if (BufferHelper.TryGetString(
@@ -86,8 +85,8 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
                     out var body))
                 {
                     packet = new(
-                        BitConverter.ToInt32(buffer[ 4.. ]),
-                        (RCONPacketType)BitConverter.ToInt32(buffer[ 8.. ]),
+                        BitConverter.ToInt32(buffer.Slice(4, sizeof(int))),
+                        (RCONPacketType)BitConverter.ToInt32(buffer.Slice(8, sizeof(int))),
                         NewLineSanitizer.Sanitize(body).TrimEnd());
 
                     return true;

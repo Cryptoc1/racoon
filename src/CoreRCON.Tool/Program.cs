@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using CoreRCON;
 using Spectre.Console;
@@ -43,12 +42,15 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
             return ShellExitCode.FailedToConnect;
         }
 
-        var prompt = new CommandPrompt(
+        using var cancellation = new CancellationTokenSource();
+        console.Disconnected += cancellation.Cancel;
+
+        var prompt = new RCONPrompt(
             await console.SendCommandAsync<RCONStatus>("status"));
 
         while (console.ConnectionState is RCONConnectionState.Authenticated)
         {
-            var command = AnsiConsole.Prompt(prompt);
+            var command = await prompt.ShowAsync(AnsiConsole.Console, cancellation.Token);
             if (command[0] is not ':')
             {
                 try
@@ -112,13 +114,12 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
                 .StartAsync("Connecting...", async context =>
                 {
                     context.Spinner(Spinner.Known.Dots3);
-
                     await Task.Delay(retry is 0 ? 250 : 1250);
+
                     await console.ConnectAsync();
                 });
         }
-        catch (Exception exception)
-        when (exception is RCONException or SocketException)
+        catch (RCONException)
         {
             return AnsiConsole.Confirm($"[bold red]{NerdFontIcon.LanDisconnect}[/]Failed to connect to the host, retry?")
                 && await TryConnect(console, ++retry);
@@ -128,10 +129,11 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
     }
 }
 
-internal sealed class CommandPrompt(RCONStatus status, int capacity = 1024) : IPrompt<string>
+internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IPrompt<string>
 {
     public bool Error { get; set; }
 
+    // private readonly RCON _console = console;
     private readonly List<string> _history = new(capacity);
 
     public string Show(IAnsiConsole console) => ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
@@ -144,6 +146,8 @@ internal sealed class CommandPrompt(RCONStatus status, int capacity = 1024) : IP
             var text = new StringBuilder();
             while (true)
             {
+                cancellation.ThrowIfCancellationRequested();
+
                 var key = await console.Input.ReadKeyAsync(true, cancellation);
                 if (!key.HasValue)
                 {
@@ -228,32 +232,6 @@ internal sealed class CommandPrompt(RCONStatus status, int capacity = 1024) : IP
         _history.Add(command);
     }
 
-    private string? FindHistory(StringBuilder buffer)
-    {
-        if (buffer.Length is 0)
-        {
-            return _history[^1];
-        }
-
-        var value = buffer.ToString();
-        return _history.FindLast(
-            command =>
-            {
-                if (command.Length < buffer.Length)
-                {
-                    return false;
-                }
-
-                ReadOnlySpan<char> chars = command;
-                for (int i = 0; i < chars.Length; i++)
-                {
-                    if (buffer[i] != chars[i]) return false;
-                }
-
-                return true;
-            });
-    }
-
     private int WritePrompt(IAnsiConsole console)
     {
         var markup = new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] ");
@@ -284,7 +262,7 @@ internal sealed class ShellParameters : CommandSettings
     public string Host { get; init; } = default!;
 
     [CommandOption("--no-logo")]
-    public bool NoLogo { get; init; } = Environment.GetEnvironmentVariable("CORERCON_NO_LOGO") == bool.TrueString;
+    public bool NoLogo { get; init; } = Environment.GetEnvironmentVariable("CORERCON_NOLOGO") == bool.TrueString;
 
     [CommandArgument(1, "[password]")]
     public string Password { get; init; } = string.Empty;
@@ -293,8 +271,8 @@ internal sealed class ShellParameters : CommandSettings
     public ushort Port { get; init; } = 27015;
 
     [CommandOption("-t|--timeout")]
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(2.5);
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(5);
 
     [CommandOption("--use-koraktor")]
-    public bool UseKoraktorMethod { get; init; }
+    public bool UseKoraktorMethod { get; init; } = false;
 }
