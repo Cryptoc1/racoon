@@ -6,7 +6,7 @@ namespace CoreRCON.Tests.PacketFormats;
 
 public sealed class LogAddressPacketTests
 {
-    [Theory]
+    [Theory(DisplayName = "TryFromBytes: does not throw when data not valid")]
     [GenerateBytes(10)]
     public void TryFromBytes_DoesNotThrow_When_DataNotValid(byte[] bytes)
     {
@@ -14,7 +14,7 @@ public sealed class LogAddressPacketTests
         LogAddressPacket.TryFromBytes(bytes, out var _);
     }
 
-    [Theory]
+    [Theory(DisplayName = "TryFromBytes: converts standard/http formats")]
     [InlineData(@"L 10/19/2023 - 20:15:34: Started """"")]
     [InlineData(@"10/19/2023 - 20:15:34.000 - Started """"")]
     public void TryFromBytes_Converts_HLStandardAndHttp(string value)

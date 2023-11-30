@@ -4,9 +4,9 @@
     ".NETStandard,Version=v2.0": {
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[*-*, )",
-        "resolved": "8.0.0-preview1.23165.1",
-        "contentHash": "0OwNin5K0hEXpV3WU8AwtZ48Dt5jLTu4wGjHsMfnstJ1HJj/qL/rZSCtLiZPqOgR2MyAfp28uNw5AEuJpLMggA=="
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "DxiTgkCl3CGq1rYmBX2wjY7XGbxiBdL4J+/AJIAFLKy5z70NxhnVRnPghnicXZ8oF6JKVXlW3xwznRbI3ioEKg=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
@@ -29,9 +29,9 @@
       },
       "PolySharp": {
         "type": "Direct",
-        "requested": "[1.13.2, )",
-        "resolved": "1.13.2",
-        "contentHash": "XwNhfkr7IeUiH8AE4pzob8YioxfL6nxgAx+fHEeWCObY/NZuBMfWLh39FznXbneKvagiqeeI7quIvZ6P1eVaEA=="
+        "requested": "[1.14.0, )",
+        "resolved": "1.14.0",
+        "contentHash": "3K6beiIeVO0hOlHCHv2jgGW7UH3OXsOIiEW60CHpqGvbrHyy4iQfGkCOBtI92PDCaA8XC4ZM3+02g2qenRnHOA=="
       },
       "System.IO.Pipelines": {
         "type": "Direct",
@@ -102,9 +102,9 @@
     ".NETStandard,Version=v2.1": {
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[*-*, )",
-        "resolved": "8.0.0-preview1.23165.1",
-        "contentHash": "0OwNin5K0hEXpV3WU8AwtZ48Dt5jLTu4wGjHsMfnstJ1HJj/qL/rZSCtLiZPqOgR2MyAfp28uNw5AEuJpLMggA=="
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "DxiTgkCl3CGq1rYmBX2wjY7XGbxiBdL4J+/AJIAFLKy5z70NxhnVRnPghnicXZ8oF6JKVXlW3xwznRbI3ioEKg=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
@@ -118,9 +118,9 @@
       },
       "PolySharp": {
         "type": "Direct",
-        "requested": "[1.13.2, )",
-        "resolved": "1.13.2",
-        "contentHash": "XwNhfkr7IeUiH8AE4pzob8YioxfL6nxgAx+fHEeWCObY/NZuBMfWLh39FznXbneKvagiqeeI7quIvZ6P1eVaEA=="
+        "requested": "[1.14.0, )",
+        "resolved": "1.14.0",
+        "contentHash": "3K6beiIeVO0hOlHCHv2jgGW7UH3OXsOIiEW60CHpqGvbrHyy4iQfGkCOBtI92PDCaA8XC4ZM3+02g2qenRnHOA=="
       },
       "System.IO.Pipelines": {
         "type": "Direct",

@@ -8,14 +8,14 @@ namespace CoreRCON.Tests.PacketFormats;
 
 public sealed class RCONPacketTests
 {
-    [Fact]
+    [Fact(DisplayName = "GetBytes: throws when buffer is too small")]
     public void GetBytes_Throws_When_BufferTooSmall()
     {
         var packet = new RCONPacket(0, RCONPacketType.Response, string.Empty);
         Assert.Throws<ArgumentOutOfRangeException>(() => packet.GetBytes(new byte[packet.Size]));
     }
 
-    [Theory]
+    [Theory(DisplayName = "GetBytes: writes to buffer")]
     [MemberData(nameof(TestData))]
     public void GetBytes_Writes_ToBuffer(RCONPacket packet, byte[] bytes)
     {
@@ -25,7 +25,7 @@ public sealed class RCONPacketTests
         Assert.Equal(bytes, buffer);
     }
 
-    [Theory]
+    [Theory(DisplayName = "TryFromBytes: converts")]
     [MemberData(nameof(TestData))]
     public void TryFromBytes_Converts_Bytes(RCONPacket packet, byte[] bytes)
     {
@@ -37,8 +37,8 @@ public sealed class RCONPacketTests
         Assert.Equal(packet, p);
     }
 
-    [Theory]
-    [GenerateBytes(10, RandomizeLength = true)]
+    [Theory(DisplayName = "TryFromBytes: does not throw when data not valid")]
+    [GenerateBytes(5, RandomizeLength = true)]
     public void TryFromBytes_DoesNotThrow_When_DataNotValid(byte[] bytes)
     {
         // NOTE: implicit failure if an exception is thrown

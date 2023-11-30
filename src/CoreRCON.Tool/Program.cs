@@ -36,26 +36,26 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
             ? AnsiConsole.Prompt(new TextPrompt<string>($"Password{NerdFontIcon.AngleRight}").Secret())
             : parameters.Password;
 
-        using var console = new RCON(host, parameters.Port, password, new RCONOptions(parameters.Timeout, parameters.UseKoraktorMethod));
+        using var console = new RCONClient(host, parameters.Port, password, new RCONClientOptions(parameters.Timeout, parameters.UseKoraktorMethod));
         if (!await TryConnect(console))
         {
             return ShellExitCode.FailedToConnect;
         }
 
         using var cancellation = new CancellationTokenSource();
-        console.Disconnected += cancellation.Cancel;
+        console.Disconnected += (_, _) => cancellation.Cancel();
 
         var prompt = new RCONPrompt(
             await console.SendCommandAsync<RCONStatus>("status"));
 
-        while (console.ConnectionState is RCONConnectionState.Authenticated)
+        while (console.State is RCONClientState.Authenticated)
         {
             var command = await prompt.ShowAsync(AnsiConsole.Console, cancellation.Token);
             if (command[0] is not ':')
             {
                 try
                 {
-                    var result = await console.SendCommandAsync(command);
+                    var result = await console.SendCommandAsync(command, cancellation.Token);
                     AnsiConsole.WriteLine(result);
 
                     prompt.Error = result.StartsWith("unknown command", StringComparison.OrdinalIgnoreCase);
@@ -106,7 +106,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         return default;
     }
 
-    private static async Task<bool> TryConnect(RCON console, int retry = default)
+    private static async Task<bool> TryConnect(RCONClient console, int retry = default)
     {
         try
         {
@@ -133,13 +133,12 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IProm
 {
     public bool Error { get; set; }
 
-    // private readonly RCON _console = console;
     private readonly List<string> _history = new(capacity);
 
     public string Show(IAnsiConsole console) => ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
     public async Task<string> ShowAsync(IAnsiConsole console, CancellationToken cancellation)
     {
-        _ = WritePrompt(console);
+        WritePrompt(console);
         var value = await console.RunExclusive(async () =>
         {
             var position = _history.Count;
@@ -149,17 +148,11 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IProm
                 cancellation.ThrowIfCancellationRequested();
 
                 var key = await console.Input.ReadKeyAsync(true, cancellation);
-                if (!key.HasValue)
-                {
-                    continue;
-                }
+                if (!key.HasValue) continue;
 
                 if (key.Value.Key is ConsoleKey.Enter)
                 {
-                    if (text.Length is 0)
-                    {
-                        continue;
-                    }
+                    if (text.Length is 0) continue;
 
                     console.WriteLine();
                     return text.ToString();
@@ -232,13 +225,9 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IProm
         _history.Add(command);
     }
 
-    private int WritePrompt(IAnsiConsole console)
-    {
-        var markup = new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] ");
-        console.Write(markup);
-
-        return markup.Length;
-    }
+    private void WritePrompt(IAnsiConsole console)
+        => console.Write(
+            new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] "));
 }
 
 internal static class NerdFontIcon

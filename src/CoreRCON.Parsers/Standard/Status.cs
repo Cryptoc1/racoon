@@ -65,8 +65,8 @@ public sealed class StatusParser : IParser<Status>
             {
                 var match = EndpointRegex.Match(value);
                 if (match.Success
-                    && IPEndPointParser.TryParse(match.Groups["Local"].Value, out var localhost)
-                    && IPEndPointParser.TryParse(match.Groups["Public"].Value, out var publichost))
+                    && IPEndPointHelper.TryParse(match.Groups["Local"].Value, out var localhost)
+                    && IPEndPointHelper.TryParse(match.Groups["Public"].Value, out var publichost))
                 {
                     return new(localhost, publichost);
                 }
