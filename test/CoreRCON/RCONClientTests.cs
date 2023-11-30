@@ -22,7 +22,7 @@ public sealed class RCONClientTests
     [Fact(DisplayName = "ConnectAsync: throws when socket fails to connect")]
     public async Task ConnectAsync_Throws_RCONException_WhenSocketFailsToConnect()
     {
-        using var client = new RCONClient(IPAddress.None, 0, string.Empty, new(TimeSpan.Zero));
+        using var client = new RCONClient(IPAddress.None, 0, string.Empty);
 
         var exception = await Assert.ThrowsAsync<RCONException>(() => client.ConnectAsync());
         Assert.StartsWith("An attempt to connect to with the host failed.", exception.Message);
@@ -123,9 +123,10 @@ internal sealed class RCONServerAccessor(RCONServer server) : IDisposable
     public static async Task<RCONServerAccessor> Acquire()
     {
         await _lock.WaitAsync();
+        await Task.Delay(250);
+
         return new(
             new RCONServer(new(IPAddress.Loopback, 27015), "TEST"));
-
     }
 
     public void Dispose()

@@ -25,20 +25,18 @@ public sealed class RCONServerTests
         Assert.NotNull(raised.Arguments.Connection);
     }
 
-    [Fact(DisplayName = "ListenAsync: does not throw when server is disposed")]
-    public async Task ListenAsync_DoesNotThrow_WhenServerIsDisposed()
+    [Fact(DisplayName = "ListenAsync: throws cancellation when server is disposed")]
+    public async Task ListenAsync_Throws_WhenServerDisposed()
     {
         using var accessor = await RCONServerAccessor.Acquire();
         var listening = accessor.Server.ListenAsync();
 
         accessor.Server.Dispose();
-
-        // NOTE: implicit failure if task throws
-        await listening;
+        await Assert.ThrowsAsync<TaskCanceledException>(() => listening);
     }
 
-    [Fact(DisplayName = "ListenAsync: completes when cancelled")]
-    public async Task ListenAsync_Completes_WhenCancelled()
+    [Fact(DisplayName = "ListenAsync: throws when cancelled")]
+    public async Task ListenAsync_Throws_WhenCancelled()
     {
         using var accessor = await RCONServerAccessor.Acquire();
         using var cancellation = new CancellationTokenSource();
@@ -46,11 +44,7 @@ public sealed class RCONServerTests
         var listening = accessor.Server.ListenAsync(cancellation.Token);
         cancellation.Cancel();
 
-        // NOTE: implicit failure if task throws
-        await listening;
-
-        Assert.False(listening.IsCanceled);
-        Assert.Equal(TaskStatus.RanToCompletion, listening.Status);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => listening);
     }
 
     [Fact(DisplayName = "PacketReceived: raised when client sends packet")]

@@ -39,7 +39,7 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
             if (_socket.Connected)
             {
                 _socket.Shutdown(SocketShutdown.Both);
-                _socket.Disconnect(true);
+                _socket.Disconnect(false);
             }
 
             _socket.Dispose();
@@ -60,6 +60,7 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
 
         _socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
+            ExclusiveAddressUse = true,
             NoDelay = true,
         };
 
@@ -67,33 +68,36 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
         _socket.Listen(_options.MaxConnections);
 
         _cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
-        while (_socket?.IsBound is true && _cancellation?.IsCancellationRequested is false)
+        while (_socket?.IsBound is true)
         {
-            try
-            {
-                var socket = await Accept(_socket, _cancellation.Token).ConfigureAwait(false);
-                AddConnection(socket);
-            }
-            catch (TaskCanceledException)
-            {
-                break;
-            }
+            OnAccepted(
+                await Accept(_socket, _cancellation.Token));
         }
 
-        static async Task<Socket> Accept(Socket socket, CancellationToken cancellation = default)
+        static async Task<Socket> Accept(Socket socket, CancellationToken cancellation)
         {
-            var completion = new TaskCompletionSource<Task<Socket>>();
+            var completion = new TaskCompletionSource<Socket>();
             using (cancellation.Register(completion.SetCanceled))
             {
                 _ = socket.AcceptAsync()
-                    .ContinueWith(completion.SetResult, cancellation);
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            completion.SetException(task.Exception);
+                            return;
+                        }
 
-                return await completion.Task.Unwrap().ConfigureAwait(false);
+                        completion.SetResult(task.Result);
+                    },
+                    cancellation);
+
+                return await completion.Task.ConfigureAwait(false);
             }
         }
     }
 
-    private void AddConnection(Socket socket)
+    private void OnAccepted(Socket socket)
     {
         var identifier = Guid.NewGuid();
         var connection = new RCONConnection(socket);

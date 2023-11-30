@@ -43,7 +43,11 @@ public sealed class RCONConnection : IDisposable
 
         if (_socket is not null)
         {
-            if (_socket.Connected) _socket.Shutdown(SocketShutdown.Both);
+            if (_socket.Connected)
+            {
+                _socket.Shutdown(SocketShutdown.Both);
+                _socket.Disconnect(false);
+            }
 
             _socket.Dispose();
             _socket = null;
@@ -175,7 +179,7 @@ public sealed class RCONConnection : IDisposable
     }
 }
 
-/// <summary> Represents the arguments of an event that occurs when a packet is received by an RCON connection. </summary>
+/// <summary> Represents the arguments of an event that occurs when a packet is received by an RCONServer connection. </summary>
 /// <param name="connection"> The connection that receieved the packet. </param>
 /// <param name="packet"> The packet that was received. </param>
 public sealed class PacketReceivedEventArgs(RCONConnection connection, RCONPacket packet) : EventArgs
