@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Abstractions;
 using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.CounterStrike;
+namespace CoreRCON.Extensions.CounterStrike.Parsers;
 
 public record DamageEvent(int ArmorDamage, Player Attacked, int Damage, string HitLocation, int PostHealth, int PostArmor, Player Target) : IParseable<DamageEvent>;
 

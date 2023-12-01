@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Abstractions;
 
-namespace CoreRCON.Parsers.CounterStrike;
+namespace CoreRCON.Parsers.Standard;
 
 public sealed record Started : IParseable<Started>;
 

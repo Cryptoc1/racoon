@@ -7,12 +7,12 @@ namespace CoreRCON;
 
 public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerOptions? options = null) : IDisposable
 {
+    private readonly CancellationTokenSource _cancellation = new();
     private readonly ConcurrentDictionary<Guid, RCONConnection> _connections = new();
     private readonly IPEndPoint _endpoint = endpoint;
     private readonly RCONServerOptions _options = options ?? new();
     private readonly string _password = password;
 
-    private CancellationTokenSource? _cancellation;
     private bool _disposed;
     private Socket? _socket;
 
@@ -23,28 +23,8 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
     {
         if (_disposed) return;
 
-        if (_cancellation is not null)
-        {
-            _cancellation.Cancel();
-            _cancellation.Dispose();
-
-            _cancellation = null;
-        }
-
-        foreach (var connection in _connections.Values) connection.Dispose();
-        _connections.Clear();
-
-        if (_socket is not null)
-        {
-            if (_socket.Connected)
-            {
-                _socket.Shutdown(SocketShutdown.Both);
-                _socket.Disconnect(false);
-            }
-
-            _socket.Dispose();
-            _socket = null;
-        }
+        _cancellation.Cancel();
+        DestroySocket();
 
         _disposed = true;
     }
@@ -67,32 +47,38 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
         _socket.Bind(_endpoint);
         _socket.Listen(_options.MaxConnections);
 
-        _cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
-        while (_socket?.IsBound is true)
+        using var combinedCancellation = CancellationTokenSource.CreateLinkedTokenSource(_cancellation.Token, cancellation);
+        try
         {
-            OnAccepted(
-                await Accept(_socket, _cancellation.Token));
+            while (true)
+            {
+                var socket = await Accept(_socket, combinedCancellation.Token).ConfigureAwait(false);
+                if (socket is not null) OnAccepted(socket);
+
+                cancellation.ThrowIfCancellationRequested();
+                if (_cancellation.IsCancellationRequested) throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
+        finally
+        {
+            DestroySocket();
         }
 
-        static async Task<Socket> Accept(Socket socket, CancellationToken cancellation)
+        static async Task<Socket?> Accept(Socket socket, CancellationToken cancellation)
         {
             var completion = new TaskCompletionSource<Socket>();
-            using (cancellation.Register(completion.SetCanceled))
+            using (cancellation.Register(completion.SetCanceled, false))
             {
-                _ = socket.AcceptAsync()
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted)
-                        {
-                            completion.SetException(task.Exception);
-                            return;
-                        }
+                var completed = await Task.WhenAny(
+                    completion.Task,
+                    socket.AcceptAsync()).ConfigureAwait(false);
 
-                        completion.SetResult(task.Result);
-                    },
-                    cancellation);
+                if (completed == completion.Task)
+                {
+                    return null;
+                }
 
-                return await completion.Task.ConfigureAwait(false);
+                return await completed.ConfigureAwait(false);
             }
         }
     }
@@ -123,6 +109,24 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
                 new(e.Packet.Body == _password ? e.Packet.Id : -1,
                     RCONPacketType.AuthResponse,
                     string.Empty)).ConfigureAwait(false);
+        }
+    }
+
+    private void DestroySocket()
+    {
+        foreach (var connection in _connections.Values) connection.Dispose();
+        _connections.Clear();
+
+        if (_socket is not null)
+        {
+            if (_socket.Connected)
+            {
+                _socket.Shutdown(SocketShutdown.Both);
+                _socket.Disconnect(false);
+            }
+
+            _socket.Dispose();
+            _socket = null;
         }
     }
 }

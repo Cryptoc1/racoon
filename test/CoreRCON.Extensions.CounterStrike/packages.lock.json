@@ -185,6 +185,12 @@
           "System.IO.Pipelines": "[8.0.0, )"
         }
       },
+      "corercon.extensions.counterstrike": {
+        "type": "Project",
+        "dependencies": {
+          "CoreRCON": "[6.0.0, )"
+        }
+      },
       "corercon.parsers": {
         "type": "Project",
         "dependencies": {
@@ -1247,6 +1253,12 @@
           "System.IO.Pipelines": "[8.0.0, )"
         }
       },
+      "corercon.extensions.counterstrike": {
+        "type": "Project",
+        "dependencies": {
+          "CoreRCON": "[6.0.0, )"
+        }
+      },
       "corercon.parsers": {
         "type": "Project",
         "dependencies": {
@@ -2307,6 +2319,12 @@
         "dependencies": {
           "CoreRCON.Parsers": "[1.0.0, )",
           "System.IO.Pipelines": "[8.0.0, )"
+        }
+      },
+      "corercon.extensions.counterstrike": {
+        "type": "Project",
+        "dependencies": {
+          "CoreRCON": "[6.0.0, )"
         }
       },
       "corercon.parsers": {

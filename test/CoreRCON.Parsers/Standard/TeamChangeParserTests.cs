@@ -4,7 +4,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class TeamChangeParserTets
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, TeamChange change)
     {
@@ -15,6 +15,15 @@ public sealed class TeamChangeParserTets
         }
 
         Assert.Equal(change, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<TeamChange>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(TeamChangeParser), parser);
     }
 
     public static TheoryData<string, TeamChange> Data = new()

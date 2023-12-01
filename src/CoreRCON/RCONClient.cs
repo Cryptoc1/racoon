@@ -92,7 +92,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
         }
 
         using (var cancellation = new CancellationTokenSource())
-        using (cancellation.Token.Register(_authenticationCompletion.SetCanceled))
+        using (cancellation.Token.Register(_authenticationCompletion.SetCanceled, false))
         {
             _connection = new RCONConnection(socket);
             _connection.Disconnected += OnDisconnected;
@@ -238,7 +238,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
         try
         {
             using (var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
-            using (cancellationSource.Token.Register(response.Cancel))
+            using (cancellationSource.Token.Register(response.Cancel, false))
             {
                 await _connection.SendAsync(packet, cancellationSource.Token).ConfigureAwait(false);
                 if (packet.Type is RCONPacketType.ExecCommand && _options.UseKoraktorMethod)

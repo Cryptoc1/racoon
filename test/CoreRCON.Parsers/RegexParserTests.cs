@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Abstractions;
-using CoreRCON.Parsers.CounterStrike;
 
 namespace CoreRCON.Parsers.Tests;
 

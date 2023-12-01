@@ -5,7 +5,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class NameChangeParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, NameChange change)
     {
@@ -16,6 +16,15 @@ public sealed class NameChangeParserTests
         }
 
         Assert.Equal(change, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<NameChange>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(NameChangeParser), parser);
     }
 
     public static TheoryData<string, NameChange> Data = new()

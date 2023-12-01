@@ -24,7 +24,7 @@ public sealed class RCONClientTests
     {
         using var client = new RCONClient(IPAddress.None, 0, string.Empty);
 
-        var exception = await Assert.ThrowsAsync<RCONException>(() => client.ConnectAsync());
+        var exception = await Assert.ThrowsAsync<RCONException>(client.ConnectAsync);
         Assert.StartsWith("An attempt to connect to with the host failed.", exception.Message);
         Assert.IsType<SocketException>(exception.InnerException);
     }
@@ -35,11 +35,8 @@ public sealed class RCONClientTests
         using var accessor = await RCONServerAccessor.Acquire();
         _ = accessor.Server.ListenAsync();
 
-        await Assert.ThrowsAsync<RCONAuthenticationException>(async () =>
-        {
-            using var client = new RCONClient(new(IPAddress.Loopback, 27015), "TESTING", new(TimeSpan.Zero));
-            await client.ConnectAsync();
-        });
+        using var client = new RCONClient(new(IPAddress.Loopback, 27015), "TESTING", new(TimeSpan.Zero));
+        await Assert.ThrowsAsync<RCONAuthenticationException>(client.ConnectAsync);
     }
 
     [Fact(DisplayName = "ConnectAsync: throws on timeout")]
@@ -54,17 +51,13 @@ public sealed class RCONClientTests
         };
 
         _ = accessor.Server.ListenAsync();
-        var exception = await Assert.ThrowsAsync<RCONException>(async () =>
-        {
-            using var client = new RCONClient(
-                IPAddress.Loopback,
-                27015,
-                string.Empty,
-                new(TimeSpan.FromMilliseconds(500)));
+        using var client = new RCONClient(
+            IPAddress.Loopback,
+            27015,
+            string.Empty,
+            new(TimeSpan.FromMilliseconds(500)));
 
-            await client.ConnectAsync();
-        });
-
+        var exception = await Assert.ThrowsAsync<RCONException>(client.ConnectAsync);
         Assert.IsType<TaskCanceledException>(exception.InnerException);
     }
 
@@ -77,14 +70,27 @@ public sealed class RCONClientTests
         client.Dispose();
     }
 
+    [Fact(DisplayName = "PacketReceived: raised when packet is received")]
+    public async Task PacetReceived_IsRaised_WhenPacketIsReceived()
+    {
+        using var accessor = await RCONServerAccessor.Acquire();
+        _ = accessor.Server.ListenAsync();
+
+        using var client = new RCONClient(new(IPAddress.Loopback, 27015), "TEST");
+        var raised = await Assert.RaisesAsync<PacketReceivedEventArgs>(
+            handler => client.PacketReceived += handler,
+            handler => client.PacketReceived -= handler,
+            client.ConnectAsync);
+
+        Assert.Equal(0, raised.Arguments.Packet.Id);
+    }
+
     [Fact(DisplayName = "SendCommandAsync: throws when not connected")]
     public async Task SendCommandAsync_Throws_RCONCommandException_WhenNotConnected()
     {
-        var exception = await Assert.ThrowsAsync<RCONCommandException>(async () =>
-        {
-            using var client = new RCONClient(IPAddress.None, 0, string.Empty);
-            await client.SendCommandAsync("status");
-        });
+        using var client = new RCONClient(IPAddress.None, 0, string.Empty);
+        var exception = await Assert.ThrowsAsync<RCONCommandException>(
+            async () => await client.SendCommandAsync("status"));
 
         Assert.StartsWith("The connection has not been", exception.Message);
     }

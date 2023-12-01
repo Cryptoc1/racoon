@@ -5,7 +5,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class ChatMessageParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(TestData))]
     public void Parser_Matches_And_Parses(string value, ChatMessage message)
     {
@@ -16,6 +16,15 @@ public sealed class ChatMessageParserTests
         }
 
         Assert.Equal(message, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<ChatMessage>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(ChatMessageParser), parser);
     }
 
     public static TheoryData<string, ChatMessage> TestData = new() {

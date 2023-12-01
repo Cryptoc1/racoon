@@ -2,7 +2,7 @@
 using CoreRCON.Parsers.Abstractions;
 using CoreRCON.Parsers.Standard;
 
-namespace CoreRCON.Parsers.CounterStrike;
+namespace CoreRCON.Extensions.CounterStrike.Parsers;
 
 public record Frag(bool IsHeadshot, Player Killed, Player Killer, string Weapon) : IParseable<Frag>;
 

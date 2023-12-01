@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CoreRCON.Extensions.CounterStrike\CoreRCON.Extensions.CounterStrike.csproj" />
+  </ItemGroup>
+
+</Project>
+ 

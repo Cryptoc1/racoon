@@ -5,7 +5,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class PlayerDisconnectedParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, PlayerDisconnected disconnected)
     {
@@ -16,6 +16,15 @@ public sealed class PlayerDisconnectedParserTests
         }
 
         Assert.Equal(disconnected, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<PlayerDisconnected>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(PlayerDisconnectedParser), parser);
     }
 
     public static TheoryData<string, PlayerDisconnected> Data = new()

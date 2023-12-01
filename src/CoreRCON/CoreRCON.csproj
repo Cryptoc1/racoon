@@ -3,10 +3,8 @@
   <PropertyGroup>
     <Description>A .NET Standard implementation of the Source RCON Protocol.</Description>
     <IncludePolySharp>true</IncludePolySharp>
-    <AssemblyVersion>6.0.0</AssemblyVersion>
-    <FileVersion>6.0.0.0</FileVersion>
-    <Version>6.0.0</Version>
     <TargetFrameworks>netstandard2.0;netstandard2.1;</TargetFrameworks>
+    <Version>6.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

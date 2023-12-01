@@ -4,7 +4,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class PlayerParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, Player player)
     {
@@ -15,6 +15,15 @@ public sealed class PlayerParserTests
         }
 
         Assert.Equal(player, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<Player>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(PlayerParser), parser);
     }
 
     public static TheoryData<string, Player> Data = new() {

@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using CoreRCON.Parsers.Abstractions;
 
-namespace CoreRCON.Parsers.CounterStrike;
+namespace CoreRCON.Extensions.CounterStrike.Parsers;
 
 public record RoundEndScore(int CTScore, int TScore, string WinningTeam) : IParseable<RoundEndScore>;
 

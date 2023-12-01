@@ -25,14 +25,14 @@ public sealed class RCONServerTests
         Assert.NotNull(raised.Arguments.Connection);
     }
 
-    [Fact(DisplayName = "ListenAsync: throws cancellation when server is disposed")]
+    [Fact(DisplayName = "ListenAsync: throws when server is disposed")]
     public async Task ListenAsync_Throws_WhenServerDisposed()
     {
         using var accessor = await RCONServerAccessor.Acquire();
         var listening = accessor.Server.ListenAsync();
 
         accessor.Server.Dispose();
-        await Assert.ThrowsAsync<TaskCanceledException>(() => listening);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => listening);
     }
 
     [Fact(DisplayName = "ListenAsync: throws when cancelled")]
@@ -44,7 +44,7 @@ public sealed class RCONServerTests
         var listening = accessor.Server.ListenAsync(cancellation.Token);
         cancellation.Cancel();
 
-        await Assert.ThrowsAsync<TaskCanceledException>(() => listening);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => listening);
     }
 
     [Fact(DisplayName = "PacketReceived: raised when client sends packet")]

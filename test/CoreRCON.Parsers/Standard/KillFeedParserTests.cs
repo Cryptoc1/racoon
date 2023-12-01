@@ -4,7 +4,7 @@ namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class KillFeedParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, KillFeed kill)
     {
@@ -15,6 +15,15 @@ public sealed class KillFeedParserTests
         }
 
         Assert.Equal(kill, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<KillFeed>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(KillFeedParser), parser);
     }
 
     public static TheoryData<string, KillFeed> Data = new()

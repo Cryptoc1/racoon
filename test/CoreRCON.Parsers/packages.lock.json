@@ -33,12 +33,6 @@
           "Microsoft.SourceLink.Common": "8.0.0"
         }
       },
-      "PolySharp": {
-        "type": "Direct",
-        "requested": "[1.14.0, )",
-        "resolved": "1.14.0",
-        "contentHash": "3K6beiIeVO0hOlHCHv2jgGW7UH3OXsOIiEW60CHpqGvbrHyy4iQfGkCOBtI92PDCaA8XC4ZM3+02g2qenRnHOA=="
-      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.6.2, )",
@@ -49,12 +43,6 @@
           "xunit.assert": "2.6.2",
           "xunit.core": "[2.6.2]"
         }
-      },
-      "xunit.runner.console": {
-        "type": "Direct",
-        "requested": "[2.6.2, )",
-        "resolved": "2.6.2",
-        "contentHash": "RDPvdI/DvI0erAWC712YMmABHUHySJc2TimFRrvdvCWQaEkp3ihe7L8SwaMz9h5yVG7dgnY68yh/KH+wH0piwA=="
       },
       "xunit.runner.visualstudio": {
         "type": "Direct",
@@ -202,12 +190,6 @@
           "xunit.assert": "2.6.2",
           "xunit.core": "[2.6.2]"
         }
-      },
-      "xunit.runner.console": {
-        "type": "Direct",
-        "requested": "[2.6.2, )",
-        "resolved": "2.6.2",
-        "contentHash": "RDPvdI/DvI0erAWC712YMmABHUHySJc2TimFRrvdvCWQaEkp3ihe7L8SwaMz9h5yVG7dgnY68yh/KH+wH0piwA=="
       },
       "xunit.runner.visualstudio": {
         "type": "Direct",
@@ -1258,12 +1240,6 @@
           "xunit.assert": "2.6.2",
           "xunit.core": "[2.6.2]"
         }
-      },
-      "xunit.runner.console": {
-        "type": "Direct",
-        "requested": "[2.6.2, )",
-        "resolved": "2.6.2",
-        "contentHash": "RDPvdI/DvI0erAWC712YMmABHUHySJc2TimFRrvdvCWQaEkp3ihe7L8SwaMz9h5yVG7dgnY68yh/KH+wH0piwA=="
       },
       "xunit.runner.visualstudio": {
         "type": "Direct",

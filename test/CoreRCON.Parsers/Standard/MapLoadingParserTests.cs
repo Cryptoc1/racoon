@@ -1,13 +1,10 @@
-using System.Reflection;
-using CoreRCON.Parsers.CounterStrike;
 using CoreRCON.Parsers.Standard;
-using Xunit.Sdk;
 
-namespace CoreRCON.Parsers.Tests.CounterStrike;
+namespace CoreRCON.Parsers.Tests.Standard;
 
 public sealed class MapLoadingParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, MapLoading loading)
     {
@@ -18,6 +15,15 @@ public sealed class MapLoadingParserTests
         }
 
         Assert.Equal(loading, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<MapLoading>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(MapLoadingParser), parser);
     }
 
     public static TheoryData<string, MapLoading> Data = new() {

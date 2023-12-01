@@ -1,10 +1,11 @@
-using CoreRCON.Parsers.CounterStrike;
+using CoreRCON.Extensions.CounterStrike.Parsers;
+using CoreRCON.Parsers;
 
-namespace CoreRCON.Parsers.Tests.CounterStrike;
+namespace CoreRCON.Extensions.CounterStrike.Tests.Parsers;
 
 public sealed class FragAssistParserTests
 {
-    [Theory]
+    [Theory(DisplayName = "Parser: matches and parses")]
     [MemberData(nameof(Data))]
     public void Parser_Matches_And_Parses(string value, FragAssist assist)
     {
@@ -15,6 +16,15 @@ public sealed class FragAssistParserTests
         }
 
         Assert.Equal(assist, parser.Parse(value));
+    }
+
+    [Fact(DisplayName = "ParserPool: gets parser")]
+    public void ParserPool_Gets_Parser()
+    {
+        var parser = new ParserPool().Get<FragAssist>();
+
+        Assert.NotNull(parser);
+        Assert.IsType(typeof(FragAssistParser), parser);
     }
 
     public static TheoryData<string, FragAssist> Data = new()

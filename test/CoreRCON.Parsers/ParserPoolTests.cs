@@ -1,7 +1,6 @@
 using System.Data;
 using System.Reflection;
 using CoreRCON.Parsers.Abstractions;
-using CoreRCON.Parsers.CounterStrike;
 using CoreRCON.Parsers.Standard;
 
 namespace CoreRCON.Parsers.Tests;
@@ -14,11 +13,11 @@ public sealed class ParserPoolTests
         var testAssembly = typeof(TestParseable).Assembly;
 
         // find custom parseable parser
-        var implementation = ParserPool.FindImplementations<TestParseable>(testAssembly).First();
+        var implementation = ParserPool.FindImplementations<TestParseable>(testAssembly).Single();
         Assert.Equal(typeof(TestParser), implementation);
 
-        // find custom parser for built-in parseable
-        implementation = ParserPool.FindImplementations<Status>(testAssembly).First();
+        // find custom parser for standard parseable
+        implementation = ParserPool.FindImplementations<Status>(testAssembly).Single();
         Assert.NotEqual(typeof(StatusParser), implementation);
         Assert.Equal(typeof(TestStatusParser), implementation);
     }
@@ -30,38 +29,6 @@ public sealed class ParserPoolTests
 
         Assert.IsNotType<TestStatusParser>(parser);
         Assert.IsType<StatusParser>(parser);
-    }
-
-    [Fact]
-    public void Shared_Gets_BuiltInParsers()
-    {
-        var pool = ParserPool.Shared;
-
-        // standard
-        Pool_Gets_Parser<ChatMessage>(pool);
-        Pool_Gets_Parser<KillFeed>(pool);
-        Pool_Gets_Parser<NameChange>(pool);
-        Pool_Gets_Parser<Player>(pool);
-        Pool_Gets_Parser<PlayerConnected>(pool);
-        Pool_Gets_Parser<PlayerDisconnected>(pool);
-        Pool_Gets_Parser<Status>(pool);
-        Pool_Gets_Parser<TeamChange>(pool);
-
-        // counter-strike
-        Pool_Gets_Parser<DamageEvent>(pool);
-        Pool_Gets_Parser<Frag>(pool);
-        Pool_Gets_Parser<FragAssist>(pool);
-        Pool_Gets_Parser<GameOverScore>(pool);
-        Pool_Gets_Parser<MapLoading>(pool);
-        Pool_Gets_Parser<RoundEndScore>(pool);
-        Pool_Gets_Parser<Started>(pool);
-        Pool_Gets_Parser<TeamSide>(pool);
-
-        void Pool_Gets_Parser<T>(ParserPool pool) where T : class, IParseable<T>
-        {
-            var parser = pool.Get<T>();
-            Assert.IsAssignableFrom<IParser<T>>(parser);
-        }
     }
 }
 
