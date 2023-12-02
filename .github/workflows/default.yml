@@ -1,0 +1,130 @@
+name: default
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          global-json-file: global.json
+
+      - name: restore
+        run: dotnet restore --locked-mode
+
+      - name: build
+        run: dotnet build --no-restore
+
+  test:
+    needs: [build]
+
+    # NOTE: use windows for net48 tests
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          global-json-file: global.json
+
+      - name: restore
+        run: dotnet restore --locked-mode
+
+      - name: test
+        run: foreach( $project in Get-ChildItem "CoreRCON.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" --results-directory TestResults --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
+        shell: pwsh
+
+      - name: upload test results
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: corercon-test-results
+          path: TestResults
+
+      - name: report test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: test results
+          path: TestResults/**/*.trx
+          reporter: dotnet-trx
+
+      - name: generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: TestResults/**/coverage.cobertura.xml
+          reporttypes: "Cobertura;MarkdownSummary"
+          targetdir: CoverageResults
+          title: coverage results
+
+      - name: upload coverage results
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: corercon-coverage-results
+          path: CoverageResults
+
+      - name: report coverage results
+        uses: cryptoc1/cobertura-action@master
+        if: success() || failure()
+        with:
+          fail_below_threshold: false
+          link_missing_lines: true
+          minimum_coverage: 80
+          path: CoverageResults/Cobertura.xml
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          report_name: coverage results
+          show_branch: false
+          show_class_names: true
+          show_missing: true
+          skip_covered: false
+
+  pack:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          global-json-file: global.json
+
+      - name: restore
+        run: dotnet restore --locked-mode
+
+      - name: build
+        run: dotnet pack -c Release -o .packages --no-restore
+
+      - name: upload packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: corercon-packages
+          path: .packages

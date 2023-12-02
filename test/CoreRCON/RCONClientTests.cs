@@ -119,25 +119,3 @@ public sealed class RCONClientTests
         Assert.Equal("TEST", result);
     }
 }
-
-internal sealed class RCONServerAccessor(RCONServer server) : IDisposable
-{
-    private static readonly SemaphoreSlim _lock = new(1, 1);
-
-    public RCONServer Server { get; } = server;
-
-    public static async Task<RCONServerAccessor> Acquire()
-    {
-        await _lock.WaitAsync();
-        await Task.Delay(250);
-
-        return new(
-            new RCONServer(new(IPAddress.Loopback, 27015), "TEST"));
-    }
-
-    public void Dispose()
-    {
-        Server.Dispose();
-        _lock.Release();
-    }
-}

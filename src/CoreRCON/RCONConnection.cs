@@ -12,9 +12,9 @@ namespace CoreRCON;
 
 public sealed class RCONConnection : IDisposable
 {
+    private readonly object _disposing = new();
     private readonly Pipe _pipe;
 
-    private bool _disposed;
     private Socket? _socket;
 
     /// <summary> Indicates whether the underlying connection is currently open. </summary>
@@ -39,21 +39,20 @@ public sealed class RCONConnection : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-
-        if (_socket is not null)
+        lock (_disposing)
         {
-            if (_socket.Connected)
+            if (_socket is not null)
             {
-                _socket.Shutdown(SocketShutdown.Both);
-                _socket.Disconnect(false);
+                if (_socket.Connected)
+                {
+                    _socket.Shutdown(SocketShutdown.Both);
+                    _socket.Disconnect(false);
+                }
+
+                _socket.Dispose();
+                _socket = null;
             }
-
-            _socket.Dispose();
-            _socket = null;
         }
-
-        _disposed = true;
     }
 
     private static async Task Write(PipeWriter writer, Socket socket)
