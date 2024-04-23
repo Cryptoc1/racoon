@@ -17,7 +17,7 @@ internal sealed class RCONServerAccessor(RCONServer server) : IDisposable
         await Task.Delay(175);
 
         return new(
-            new RCONServer(new(IPAddress.Loopback, 27015), "TEST"));
+            new RCONServer(new(IPAddress.Loopback, 27015), "TEST", new() { MaxConnections = int.MaxValue }));
     }
 
     public void Dispose()
