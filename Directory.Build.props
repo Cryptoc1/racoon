@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Features>strict</Features>
@@ -31,7 +30,7 @@
     <PackageProjectUrl>https://github.com/Challengermode/CoreRcon</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/Challengermode/CoreRcon/releases</PackageReleaseNotes>
-    <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2</PackageTags>
+    <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2;</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Challengermode/CoreRcon</RepositoryUrl>
     <Title>$(AssemblyName)</Title>

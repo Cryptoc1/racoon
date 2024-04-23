@@ -5,22 +5,17 @@ using System.Text.RegularExpressions;
 namespace CoreRCON.Parsers.Abstractions;
 
 /// <summary> Base implementation of an <see cref="IParser{T}"/> that parses input via regex. </summary>
-public abstract class RegexParser<T> : IParser<T>
+public abstract class RegexParser<T>([StringSyntax(StringSyntaxAttribute.Regex)] string pattern) : IParser<T>
     where T : class, IParseable<T>
 {
     /// <summary> The string value of the regex pattern this <see cref="IParser{T}"/> matches. </summary>
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    public string Pattern { get; }
+    public string Pattern { get; } = pattern;
 
     private Regex? pattern;
 
     /// <summary> The compiled <see cref="Regex"/> pattern. </summary>
     public Regex PatternRegex => pattern ??= new(Pattern, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
-
-    protected RegexParser([StringSyntax(StringSyntaxAttribute.Regex)] string pattern)
-    {
-        Pattern = pattern;
-    }
 
     /// <inheritdoc/>
     public bool IsMatch(string value) => PatternRegex.IsMatch(value);

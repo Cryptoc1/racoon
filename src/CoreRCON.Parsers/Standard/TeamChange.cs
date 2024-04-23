@@ -5,12 +5,8 @@ namespace CoreRCON.Parsers.Standard;
 
 public record TeamChange(Player Player, string Team) : IParseable<TeamChange>;
 
-public sealed class TeamChangeParser : RegexParser<TeamChange>
+public sealed class TeamChangeParser() : RegexParser<TeamChange>(@$"(?<Player>{PlayerParser.Shared.Pattern}) joined team ""(?<Team>.+?)""")
 {
-    public TeamChangeParser() : base(@$"(?<Player>{PlayerParser.Shared.Pattern}) joined team ""(?<Team>.+?)""")
-    {
-    }
-
     protected override TeamChange Convert(GroupCollection groups) => new(
         PlayerParser.Shared.Parse(groups["Player"]),
         groups["Team"].Value

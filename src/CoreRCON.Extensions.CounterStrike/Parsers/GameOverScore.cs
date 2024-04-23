@@ -6,12 +6,8 @@ namespace CoreRCON.Extensions.CounterStrike.Parsers;
 
 public record GameOverScore(int CTScore, int TScore) : IParseable<GameOverScore>;
 
-public sealed class GameOverScoreParser : RegexParser<GameOverScore>
+public sealed class GameOverScoreParser() : RegexParser<GameOverScore>(@"Game Over: .*? .*? .*? score (?<ct_score>\d+):(?<t_score>\d+) (after \d+ min)?")
 {
-    public GameOverScoreParser() : base(@"Game Over: .*? .*? .*? score (?<ct_score>\d+):(?<t_score>\d+) (after \d+ min)?")
-    {
-    }
-
     protected override GameOverScore Convert(GroupCollection groups) => new(
         int.Parse(groups["ct_score"].Value, CultureInfo.InvariantCulture),
         int.Parse(groups["t_score"].Value, CultureInfo.InvariantCulture)

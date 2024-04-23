@@ -5,11 +5,7 @@ namespace CoreRCON.Parsers.Standard;
 
 public sealed record Started : IParseable<Started>;
 
-public sealed class StartedParser : RegexParser<Started>
+public sealed class StartedParser() : RegexParser<Started>(@"^Started:  """"$")
 {
-    public StartedParser() : base(@"^Started:  """"$")
-    {
-    }
-
     protected override Started Convert(GroupCollection groups) => new();
 }

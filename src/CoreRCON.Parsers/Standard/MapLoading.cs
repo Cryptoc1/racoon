@@ -5,11 +5,7 @@ namespace CoreRCON.Parsers.Standard;
 
 public record MapLoading(string Map) : IParseable<MapLoading>;
 
-public sealed class MapLoadingParser : RegexParser<MapLoading>
+public sealed class MapLoadingParser() : RegexParser<MapLoading>(@"^Loading map ""(?<Map>.+?)""")
 {
-    public MapLoadingParser() : base(@"^Loading map ""(?<Map>.+?)""")
-    {
-    }
-
     protected override MapLoading Convert(GroupCollection groups) => new(groups["Map"].Value);
 }

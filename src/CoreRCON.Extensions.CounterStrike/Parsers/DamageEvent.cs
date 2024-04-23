@@ -7,20 +7,16 @@ namespace CoreRCON.Extensions.CounterStrike.Parsers;
 
 public record DamageEvent(int ArmorDamage, Player Attacked, int Damage, string HitLocation, int PostHealth, int PostArmor, Player Target) : IParseable<DamageEvent>;
 
-public sealed class DamageEventParser : RegexParser<DamageEvent>
+// TODO: parse position (square bracket content)
+public sealed class DamageEventParser() : RegexParser<DamageEvent>(
+    @$"(?<Attacker>{PlayerParser.Shared.Pattern}) \[.*?\] attacked (?<Target>{PlayerParser.Shared.Pattern}) \[.*?\] with ""(?<Weapon>.+?)"" " +
+    @"\(damage ""(?<Damage>\d+)""\) " +
+    @"\(damage_armor ""(?<ArmorDamage>\d+)""\) " +
+    @"\(health ""(?<Health>\d+)""\) " +
+    @"\(armor ""(?<Armor>\d+)""\) " +
+    @"\(hitgroup ""(?<Hitgroup>.*?)""\)"
+)
 {
-    //Todo parse position (square bracket content)
-    public DamageEventParser() : base(
-        @$"(?<Attacker>{PlayerParser.Shared.Pattern}) \[.*?\] attacked (?<Target>{PlayerParser.Shared.Pattern}) \[.*?\] with ""(?<Weapon>.+?)"" " +
-        @"\(damage ""(?<Damage>\d+)""\) " +
-        @"\(damage_armor ""(?<ArmorDamage>\d+)""\) " +
-        @"\(health ""(?<Health>\d+)""\) " +
-        @"\(armor ""(?<Armor>\d+)""\) " +
-        @"\(hitgroup ""(?<Hitgroup>.*?)""\)"
-    )
-    {
-    }
-
     protected override DamageEvent Convert(GroupCollection groups) => new(
         int.Parse(groups["ArmorDamage"].Value, CultureInfo.InvariantCulture),
         PlayerParser.Shared.Parse(groups["Attacker"]),

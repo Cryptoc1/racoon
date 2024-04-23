@@ -22,7 +22,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
     private RCONConnection? _connection;
 
     // When generating the packet ID, use a never-been-used (for automatic packets) ID.
-    private volatile int _packetId = 1;
+    private volatile int _packetId;
 
     // NOTE: Use (1,1) to lock connection per command (only a single command may execute against the connection at a time)
     private readonly SemaphoreSlim _commandLock = new(1, 1);
@@ -43,7 +43,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
     /// <summary> Fired if connection is lost. </summary>
     public event EventHandler? Disconnected;
 
-    /// <summary> Fired when an RCON package has been received. </summary>
+    /// <summary> Fired when an RCON packet has been received. </summary>
     public event EventHandler<PacketReceivedEventArgs>? PacketReceived;
 
     /// <summary> Create an instance of an RCON client. </summary>
@@ -233,8 +233,12 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
     /// <exception cref="RCONCommandException"> An error occurred while sending the command. </exception>
     public async Task<string> SendCommandAsync(string command, CancellationToken cancellation = default)
     {
-        if (_connection is null) throw new RCONCommandException($"The connection has not been established. Ensure '{nameof(ConnectAsync)}' is called before '{nameof(SendCommandAsync)}'.", command);
+        if (_options.AutoConnect && State is not RCONClientState.Connected)
+        {
+            await ConnectAsync();
+        }
 
+        if (_connection is null) throw new RCONCommandException($"The connection has not been established. Ensure '{nameof(ConnectAsync)}' is called before '{nameof(SendCommandAsync)}'.", command);
         await _commandLock.WaitAsync(cancellation).ConfigureAwait(false);
 
         var packet = new RCONPacket(
@@ -365,14 +369,17 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
 /// <summary> Represents options for an RCON client. </summary>
 public sealed class RCONClientOptions
 {
+    /// <summary> Indicate whether <see cref="RCONClient.ConnectAsync"/> should be invoked when invoking <see cref="RCONClient.SendCommandAsync(string, CancellationToken)"/>.  </summary>
+    public bool AutoConnect { get; set; }
+
     /// <summary> A <see cref="ParserPool"/> to be used for parsing the responses of commands.  </summary>
     public ParserPool Parsers { get; set; } = ParserPool.Shared;
 
-    /// <summary> Whether the 'Koraktor' method of handling multi-packet responses should be used. </summary>
-    public bool UseKoraktorMethod { get; set; }
-
     /// <summary> A timeout to be used when connecting and executing commands. </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
+
+    /// <summary> Whether the 'Koraktor' method of handling multi-packet responses should be used. </summary>
+    public bool UseKoraktorMethod { get; set; }
 
     public RCONClientOptions(bool useKoraktorMethod = false)
     {
