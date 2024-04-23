@@ -45,7 +45,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         using var cancellation = new CancellationTokenSource();
         console.Disconnected += (_, _) => cancellation.Cancel();
 
-        var prompt = new RCONPrompt(
+        using var prompt = new RCONPrompt(
             await console.SendCommandAsync<RCONStatus>("status"));
 
         while (console.State is RCONClientState.Authenticated)
@@ -129,11 +129,13 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
     }
 }
 
-internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IPrompt<string>
+internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IDisposable, IPrompt<string>
 {
     public bool Error { get; set; }
 
     private readonly List<string> _history = new(capacity);
+
+    public void Dispose() => _history.Clear();
 
     public string Show(IAnsiConsole console) => ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
     public async Task<string> ShowAsync(IAnsiConsole console, CancellationToken cancellation)

@@ -1,7 +1,10 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CoreRCON.Internal;
 using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
 using CoreRCON.Parsers.Abstractions;
@@ -69,6 +72,10 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
             return;
         }
 
+        using var activity = Tracing.Source.StartActivity(nameof(ConnectAsync), ActivityKind.Client)
+            ?.AddTag(Tracing.Tags.Address, _endpoint.Address.ToString())
+            ?.AddTag(Tracing.Tags.Port, _endpoint.Port.ToString(CultureInfo.InvariantCulture));
+
         _authenticationCompletion = new();
         var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         {
@@ -79,6 +86,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
 
         try
         {
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             await socket.ConnectAsync(_endpoint).ConfigureAwait(false);
         }
         catch (SocketException exception)
@@ -234,6 +242,12 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
             RCONPacketType.ExecCommand,
             command);
 
+        using var activity = Tracing.Source.StartActivity(nameof(ConnectAsync), ActivityKind.Client)
+            ?.AddTag(Tracing.Tags.Address, _endpoint.Address.ToString())
+            ?.AddTag(Tracing.Tags.Port, _endpoint.Port.ToString(CultureInfo.InvariantCulture))
+            ?.AddTag(Tracing.Tags.PacketId, packet.Id)
+            ?.AddTag(Tracing.Tags.CommandText, command);
+
         var response = _responseByPacketId[packet.Id] = new RCONResponse();
         try
         {
@@ -261,7 +275,10 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
                 {
                     try
                     {
-                        return await response.Completed.ConfigureAwait(false);
+                        var content = await response.Completed.ConfigureAwait(false);
+                        activity?.AddTag(Tracing.Tags.CommandResponse, content);
+
+                        return content;
                     }
                     catch (TaskCanceledException exception)
                     {
@@ -321,6 +338,26 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
                 body.Clear();
                 body = null;
             }
+        }
+    }
+
+    private static class Tracing
+    {
+        private static readonly Version AssemblyVersion = typeof(RCONClient).Assembly.GetName().Version;
+        private static string LibraryVersion => $"{AssemblyVersion.Major}.{AssemblyVersion.Minor}.{AssemblyVersion.Build}";
+
+        public static readonly ActivitySource Source = new("CoreRCON.RCONClient", LibraryVersion);
+
+        public static class Tags
+        {
+            // Same Semantic Conventions for HTTP Spans 
+            public const string Address = "host.address";
+            public const string Port = "host.port";
+
+            // RCON Specific tags
+            public const string PacketId = "rcon.packet_id";
+            public const string CommandText = "rcon.command.text";
+            public const string CommandResponse = "rcon.command.response";
         }
     }
 }

@@ -7,8 +7,9 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "*.cs": "${capture}.*.cs",
-    "*.csproj": "${capture}.csproj.user",
+    "*.csproj": "${capture}.csproj.user,packages.lock.json",
     "*.json": "${capture}.*.json",
+    "*.razor": "${capture}.razor.cs, ${capture}.razor.css, ${capture}.razor.js",
   },
   "files.exclude": {
     "**/.git": true,
