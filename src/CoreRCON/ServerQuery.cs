@@ -57,7 +57,7 @@ public class ServerQuery
     /// <exception cref="TimeoutException"></exception>
     public static Task<IQueryInfo> Info(IPEndPoint host, ServerType type, TimeSpan? timeout = null)
     {
-        return Task.Run<IQueryInfo>(async () =>
+        var task = Task.Run<IQueryInfo>(async () =>
         {
             switch (type)
             {
@@ -81,7 +81,9 @@ public class ServerQuery
                 default:
                     throw new ArgumentException("type argument was invalid");
             }
-        }).WaitAsync(timeout);
+        });
+
+        return task.WaitAsync(timeout);
     }
 
     /// <summary>
