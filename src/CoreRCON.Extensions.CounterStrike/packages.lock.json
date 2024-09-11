@@ -4,9 +4,9 @@
     ".NETStandard,Version=v2.0": {
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[8.0.0, )",
-        "resolved": "8.0.0",
-        "contentHash": "DxiTgkCl3CGq1rYmBX2wjY7XGbxiBdL4J+/AJIAFLKy5z70NxhnVRnPghnicXZ8oF6JKVXlW3xwznRbI3ioEKg=="
+        "requested": "[9.0.0-preview.*, )",
+        "resolved": "9.0.0-preview.24415.1",
+        "contentHash": "wse/MJXzfUMmk1mzPlS0lad96F7NpOb56TAUhfh5lamRooVgzuwoo/RnunGXUpDvKfV2qjZs7atauNo0FiTWOA=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
@@ -118,9 +118,9 @@
     ".NETStandard,Version=v2.1": {
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[8.0.0, )",
-        "resolved": "8.0.0",
-        "contentHash": "DxiTgkCl3CGq1rYmBX2wjY7XGbxiBdL4J+/AJIAFLKy5z70NxhnVRnPghnicXZ8oF6JKVXlW3xwznRbI3ioEKg=="
+        "requested": "[9.0.0-preview.*, )",
+        "resolved": "9.0.0-preview.24415.1",
+        "contentHash": "wse/MJXzfUMmk1mzPlS0lad96F7NpOb56TAUhfh5lamRooVgzuwoo/RnunGXUpDvKfV2qjZs7atauNo0FiTWOA=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
