@@ -10,10 +10,12 @@ public sealed class PlayerParser() : RegexParser<Player>(@"""(?<Name>.+?(?:<.*>)
 {
     public static readonly PlayerParser Shared = new();
 
-    protected override Player Convert(GroupCollection groups) => new(
-        int.Parse(groups["ClientID"].Value, CultureInfo.InvariantCulture),
-        groups["Name"].Value,
-        groups["SteamID"].Value,
-        groups["Team"].Value
-    );
+    protected override Player Convert(GroupCollection groups)
+    {
+        return new(
+            int.Parse(groups["ClientID"].Value, CultureInfo.InvariantCulture),
+            groups["Name"].Value,
+            groups["SteamID"].Value,
+            groups["Team"].Value);
+    }
 }

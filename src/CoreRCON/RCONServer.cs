@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using CoreRCON.PacketFormats;
 
 namespace CoreRCON;
 
+/// <summary> Create a RCON server. </summary>
+/// <param name="endpoint"> The endpoint to bind to. </param>
+/// <param name="password"> The password to authenticate with. </param>
+/// <param name="options"> The options to use for serving connections. </param>
 public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerOptions? options = null) : IDisposable
 {
     private readonly CancellationTokenSource _cancellation = new();
@@ -21,7 +24,10 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _cancellation.Cancel();
         DestroySocket();
@@ -36,7 +42,10 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
     /// <exception cref="RCONException" />
     public async Task ListenAsync(CancellationToken cancellation = default)
     {
-        if (_socket is not null) throw new RCONException("Server is already listening.");
+        if (_socket is not null)
+        {
+            throw new RCONException("Server is already listening.");
+        }
 
         _socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
@@ -52,34 +61,16 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
         {
             while (true)
             {
-                var socket = await Accept(_socket, combinedCancellation.Token).ConfigureAwait(false);
-                if (socket is not null) OnAccepted(socket);
-
-                cancellation.ThrowIfCancellationRequested();
-                if (_cancellation.IsCancellationRequested) throw new ObjectDisposedException(GetType().FullName);
+                var socket = await _socket.AcceptAsync(combinedCancellation.Token).ConfigureAwait(false);
+                if (socket is not null)
+                {
+                    OnAccepted(socket);
+                }
             }
         }
         finally
         {
             DestroySocket();
-        }
-
-        static async Task<Socket?> Accept(Socket socket, CancellationToken cancellation)
-        {
-            var completion = new TaskCompletionSource<Socket>();
-            using (cancellation.Register(completion.SetCanceled, false))
-            {
-                var completed = await Task.WhenAny(
-                    completion.Task,
-                    socket.AcceptAsync()).ConfigureAwait(false);
-
-                if (completed == completion.Task)
-                {
-                    return null;
-                }
-
-                return await completed.ConfigureAwait(false);
-            }
         }
     }
 
@@ -92,7 +83,10 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
             connection.PacketReceived += OnPacketReceived;
             connection.Disconnected += (_, _) =>
             {
-                if (_connections.TryRemove(identifier, out var c)) c.Dispose();
+                if (_connections.TryRemove(identifier, out var c))
+                {
+                    c.Dispose();
+                }
             };
 
             Connection?.Invoke(this, new(connection, identifier));
@@ -114,7 +108,11 @@ public sealed class RCONServer(IPEndPoint endpoint, string password, RCONServerO
 
     private void DestroySocket()
     {
-        foreach (var connection in _connections.Values) connection.Dispose();
+        foreach (var connection in _connections.Values)
+        {
+            connection.Dispose();
+        }
+
         _connections.Clear();
 
         if (_socket is not null)
@@ -142,7 +140,9 @@ public sealed class ConnectionEventArgs(RCONConnection connection, Guid identifi
     public Guid Identifier { get; } = identifier;
 }
 
+/// <summary> Represents the options for server RCON connections. </summary>
 public sealed class RCONServerOptions
 {
+    /// <summary> The maximum number of allowed connections. </summary>
     public int MaxConnections { get; set; } = 10;
 }

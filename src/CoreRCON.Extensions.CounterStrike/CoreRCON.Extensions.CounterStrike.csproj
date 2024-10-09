@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IncludePolySharp>true</IncludePolySharp>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;</TargetFrameworks>
     <Version>1.0.0</Version>
   </PropertyGroup>
 

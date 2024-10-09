@@ -24,10 +24,10 @@ public sealed class StatusParserTests
         var parser = new ParserPool().Get<Status>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(StatusParser), parser);
+        Assert.IsType<StatusParser>(parser);
     }
 
-    public static TheoryData<string, Status> Data = new()
+    public static readonly TheoryData<string, Status> Data = new()
     {
         {
 @"----- Status -----

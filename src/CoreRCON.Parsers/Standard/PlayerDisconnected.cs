@@ -7,8 +7,10 @@ public record PlayerDisconnected(Player Player, string Reason) : IParseable<Play
 
 public sealed class PlayerDisconnectedParser() : RegexParser<PlayerDisconnected>(@$"(?<Player>{PlayerParser.Shared.Pattern}) disconnected\s?(\(reason ""(?<Reason>.*)""\))?")
 {
-    protected override PlayerDisconnected Convert(GroupCollection groups) => new(
-        PlayerParser.Shared.Parse(groups["Player"]),
-        groups["Reason"].Value
-    );
+    protected override PlayerDisconnected Convert(GroupCollection groups)
+    {
+        return new(
+            PlayerParser.Shared.Parse(groups["Player"].Value),
+            groups["Reason"].Value);
+    }
 }

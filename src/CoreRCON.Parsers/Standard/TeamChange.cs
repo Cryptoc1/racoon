@@ -7,8 +7,10 @@ public record TeamChange(Player Player, string Team) : IParseable<TeamChange>;
 
 public sealed class TeamChangeParser() : RegexParser<TeamChange>(@$"(?<Player>{PlayerParser.Shared.Pattern}) joined team ""(?<Team>.+?)""")
 {
-    protected override TeamChange Convert(GroupCollection groups) => new(
-        PlayerParser.Shared.Parse(groups["Player"]),
-        groups["Team"].Value
-    );
+    protected override TeamChange Convert(GroupCollection groups)
+    {
+        return new(
+            PlayerParser.Shared.Parse(groups["Player"].Value),
+            groups["Team"].Value);
+    }
 }

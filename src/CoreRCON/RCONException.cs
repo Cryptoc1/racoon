@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace CoreRCON;
 
 /// <summary> Represents an exception that occurs while performing operations against a RCON Host. </summary>
@@ -50,6 +48,8 @@ public class RCONCommandException : RCONException
         Command = command;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static RCONCommandException Failed(string command, Exception? inner = null) => new($"Failed to execute command '{command}'.", command, inner);
+    internal static RCONCommandException Failed(string command, Exception? inner = null)
+    {
+        return new($"Failed to execute command '{command}'.", command, inner);
+    }
 }

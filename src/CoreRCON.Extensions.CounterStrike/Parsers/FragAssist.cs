@@ -8,8 +8,10 @@ public record FragAssist(Player Assister, Player Killed) : IParseable<FragAssist
 
 public sealed class FragAssistParser() : RegexParser<FragAssist>(@$"(?<Assister>{PlayerParser.Shared.Pattern}) assisted killing (?<Killed>{PlayerParser.Shared.Pattern})?")
 {
-    protected override FragAssist Convert(GroupCollection groups) => new(
-        PlayerParser.Shared.Parse(groups["Assister"]),
-        PlayerParser.Shared.Parse(groups["Killed"])
-    );
+    protected override FragAssist Convert(GroupCollection groups)
+    {
+        return new(
+            PlayerParser.Shared.Parse(groups["Assister"].Value),
+            PlayerParser.Shared.Parse(groups["Killed"].Value));
+    }
 }

@@ -24,10 +24,10 @@ public sealed class FragAssistParserTests
         var parser = new ParserPool().Get<FragAssist>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(FragAssistParser), parser);
+        Assert.IsType<FragAssistParser>(parser);
     }
 
-    public static TheoryData<string, FragAssist> Data = new()
+    public static readonly TheoryData<string, FragAssist> Data = new()
     {
         {
             @"""TEST<0><[U:0:123456789]><TERRORIST>"" assisted killing ""TEST1<1><[U:0:123456789]><TERRORIST>""",

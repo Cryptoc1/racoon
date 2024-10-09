@@ -1,4 +1,3 @@
-using System.Reflection;
 using CoreRCON.Parsers.Standard;
 
 namespace CoreRCON.Parsers.Tests.Standard;
@@ -24,10 +23,11 @@ public sealed class ChatMessageParserTests
         var parser = new ParserPool().Get<ChatMessage>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(ChatMessageParser), parser);
+        Assert.IsType<ChatMessageParser>(parser);
     }
 
-    public static TheoryData<string, ChatMessage> TestData = new() {
+    public static readonly TheoryData<string, ChatMessage> TestData = new()
+    {
         { @"""TEST<0><[U:0:123456789]><TERRORIST>"" say ""test""", new(MessageChannel.All, "test", new(0, "TEST", "[U:0:123456789]", "TERRORIST")) },
         { @"""TEST<0><[U:0:123456789]><TERRORIST>"" say_team ""test""", new(MessageChannel.Team, "test", new(0, "TEST", "[U:0:123456789]", "TERRORIST")) },
     };

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace CoreRCON.Parsers.Abstractions;
@@ -18,15 +17,14 @@ public abstract class RegexParser<T>([StringSyntax(StringSyntaxAttribute.Regex)]
     public Regex PatternRegex => pattern ??= new(Pattern, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
     /// <inheritdoc/>
-    public bool IsMatch(string value) => PatternRegex.IsMatch(value);
+    public bool IsMatch(string value)
+    {
+        return PatternRegex.IsMatch(value);
+    }
 
     /// <summary> Convert the groups matched by the underlying regex pattern to an instance of <typeparamref name="T"/>. </summary>
     /// <param name="groups"> The groups that matched the parser's <see cref="Pattern" />. </param>
     protected abstract T Convert(GroupCollection groups);
-
-    /// <summary> Shorthand for <see cref="Parse(string)"/>. </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Parse(Group group) => Parse(group.Value);
 
     /// <inheritdoc/>
     public T Parse(string value)

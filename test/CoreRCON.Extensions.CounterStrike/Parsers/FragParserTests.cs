@@ -24,10 +24,10 @@ public sealed class FragParserTests
         var parser = new ParserPool().Get<Frag>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(FragParser), parser);
+        Assert.IsType<FragParser>(parser);
     }
 
-    public static TheoryData<string, Frag> Data = new()
+    public static readonly TheoryData<string, Frag> Data = new()
     {
         {
             @"""TEST<0><[U:0:123456789]><TERRORIST>"" [0] killed ""TEST1<1><[U:0:123456789]><TERRORIST>"" [0] with ""ak47""",

@@ -135,9 +135,16 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IDisp
 
     private readonly List<string> _history = new(capacity);
 
-    public void Dispose() => _history.Clear();
+    public void Dispose()
+    {
+        _history.Clear();
+    }
 
-    public string Show(IAnsiConsole console) => ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
+    public string Show(IAnsiConsole console)
+    {
+        return ShowAsync(console, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
     public async Task<string> ShowAsync(IAnsiConsole console, CancellationToken cancellation)
     {
         WritePrompt(console);
@@ -150,11 +157,17 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IDisp
                 cancellation.ThrowIfCancellationRequested();
 
                 var key = await console.Input.ReadKeyAsync(true, cancellation);
-                if (!key.HasValue) continue;
+                if (!key.HasValue)
+                {
+                    continue;
+                }
 
                 if (key.Value.Key is ConsoleKey.Enter)
                 {
-                    if (text.Length is 0) continue;
+                    if (text.Length is 0)
+                    {
+                        continue;
+                    }
 
                     console.WriteLine();
                     return text.ToString();
@@ -228,8 +241,10 @@ internal sealed class RCONPrompt(RCONStatus status, int capacity = 1024) : IDisp
     }
 
     private void WritePrompt(IAnsiConsole console)
-        => console.Write(
-            new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] "));
+    {
+        console.Write(
+                new Markup($"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] "));
+    }
 }
 
 internal static class NerdFontIcon

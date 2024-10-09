@@ -20,8 +20,7 @@ public class ParserPool
     {
         var parser = _parserByParsableType.GetOrAdd(
             typeof(T),
-            t => Activator.CreateInstance(
-                FindImplementations<T>(t.Assembly).Single()));
+            t => Activator.CreateInstance(FindImplementations<T>(t.Assembly).Single())!);
 
         // NOTE: avoid runtime checks; we know this must be an `IParser<T>`
         return Unsafe.As<IParser<T>>(parser);

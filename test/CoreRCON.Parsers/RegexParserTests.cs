@@ -42,6 +42,9 @@ public sealed class RegexParserTests
         {
         }
 
-        protected override P Convert(GroupCollection groups) => throw new NotImplementedException();
+        protected override P Convert(GroupCollection groups)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

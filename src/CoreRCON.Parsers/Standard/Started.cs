@@ -7,5 +7,8 @@ public sealed record Started : IParseable<Started>;
 
 public sealed class StartedParser() : RegexParser<Started>(@"^Started:  """"$")
 {
-    protected override Started Convert(GroupCollection groups) => new();
+    protected override Started Convert(GroupCollection groups)
+    {
+        return new();
+    }
 }

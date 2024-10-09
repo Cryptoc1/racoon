@@ -1,10 +1,4 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using CoreRCON.PacketFormats;
-
-namespace CoreRCON.Tests.PacketFormats;
+namespace CoreRCON.Tests;
 
 public sealed class RCONPacketTests
 {

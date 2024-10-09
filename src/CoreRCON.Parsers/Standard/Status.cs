@@ -16,8 +16,7 @@ public record Status(
     string? Source,
     string? SteamID,
     string? Type,
-    string? Version
-) : IParseable<Status>;
+    string? Version) : IParseable<Status>;
 
 public record HostEndpoints(IPEndPoint Local, IPEndPoint Public);
 public record PlayerCounts(byte Bots, byte Humans, byte Max)
@@ -25,19 +24,17 @@ public record PlayerCounts(byte Bots, byte Humans, byte Max)
     public static readonly PlayerCounts Empty = new(0, 0, 0);
 }
 
-public sealed class StatusParser : IParser<Status>
+public sealed partial class StatusParser : IParser<Status>
 {
-    private readonly Regex DelimeterRegex = new(@"^(?<Key>.+?)\s+:\s+(?<Value>.+)", RegexOptions.Compiled | RegexOptions.Singleline);
-    private readonly Regex EndpointRegex = new(@"^(?<Local>.*:\d{0,5})\s+\(public(\s*ip[:]\s*)?(?<Public>.*:\d{0,5})\)", RegexOptions.Compiled | RegexOptions.Singleline);
-    private readonly Regex PlayersRegex = new(@"^(?<Humans>\d+) humans, (?<Bots>\d+) bots \((?<Max>\d+) max\).*", RegexOptions.Compiled | RegexOptions.Singleline);
-    private readonly Regex PlayersLegacyRegex = new(@"^(?<Humans>\d+) \((?<Max>\d+) max\).*", RegexOptions.Compiled | RegexOptions.Singleline);
-
-    public bool IsMatch(string value) => value.Contains("----- Status -----");
+    public bool IsMatch(string value)
+    {
+        return value.Contains("----- Status -----");
+    }
 
     public Status Parse(string value)
     {
         var groups = value.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries)
-            .Select(value => DelimeterRegex.Match(value))
+            .Select(value => DelimeterRegex().Match(value))
             .Where(match => match.Success)
             .ToDictionary(match => match.Groups["Key"].Value, match => match.Groups["Value"].Value, StringComparer.OrdinalIgnoreCase);
 
@@ -63,7 +60,7 @@ public sealed class StatusParser : IParser<Status>
         {
             if (groups.TryGetValue("udp/ip", out var value) || groups.TryGetValue("udp / ip", out value))
             {
-                var match = EndpointRegex.Match(value);
+                var match = EndpointRegex().Match(value);
                 if (match.Success
                     && IPEndPointHelper.TryParse(match.Groups["Local"].Value, out var localhost)
                     && IPEndPointHelper.TryParse(match.Groups["Public"].Value, out var publichost))
@@ -79,14 +76,14 @@ public sealed class StatusParser : IParser<Status>
         {
             if (groups.TryGetValue("players", out var value))
             {
-                var match = PlayersRegex.Match(value);
+                var match = PlayersRegex().Match(value);
                 if (match.Success)
                 {
                     return new(byte.Parse(match.Groups["Bots"].Value, CultureInfo.InvariantCulture),
                         byte.Parse(match.Groups["Humans"].Value, CultureInfo.InvariantCulture),
                         byte.Parse(match.Groups["Max"].Value, CultureInfo.InvariantCulture));
                 }
-                else if ((match = PlayersLegacyRegex.Match(value)).Success)
+                else if ((match = PlayersLegacyRegex().Match(value)).Success)
                 {
                     return new(0,
                         byte.Parse(match.Groups["Humans"].Value, CultureInfo.InvariantCulture),
@@ -117,7 +114,7 @@ public sealed class StatusParser : IParser<Status>
         {
             if (groups.TryGetValue("version", out var version))
             {
-                var match = Regex.Match(version, ".*(\\[.*\\]).*");
+                var match = VersionRegex().Match(version);
                 if (match.Success)
                 {
                     return (match.Groups[1].Value, version);
@@ -128,4 +125,19 @@ public sealed class StatusParser : IParser<Status>
             return (steamId, version);
         }
     }
+
+    [GeneratedRegex(@"^(?<Key>.+?)\s+:\s+(?<Value>.+)", RegexOptions.Singleline)]
+    private static partial Regex DelimeterRegex();
+
+    [GeneratedRegex(@"^(?<Local>.*:\d{0,5})\s+\(public(\s*ip[:]\s*)?(?<Public>.*:\d{0,5})\)", RegexOptions.Singleline)]
+    private static partial Regex EndpointRegex();
+
+    [GeneratedRegex(@"^(?<Humans>\d+) humans, (?<Bots>\d+) bots \((?<Max>\d+) max\).*", RegexOptions.Singleline)]
+    private static partial Regex PlayersRegex();
+
+    [GeneratedRegex(@"^(?<Humans>\d+) \((?<Max>\d+) max\).*", RegexOptions.Singleline)]
+    private static partial Regex PlayersLegacyRegex();
+
+    [GeneratedRegex(@".*(\[.*\]).*")]
+    private static partial Regex VersionRegex();
 }

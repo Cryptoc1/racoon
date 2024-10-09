@@ -23,10 +23,11 @@ public sealed class PlayerParserTests
         var parser = new ParserPool().Get<Player>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(PlayerParser), parser);
+        Assert.IsType<PlayerParser>(parser);
     }
 
-    public static TheoryData<string, Player> Data = new() {
+    public static readonly TheoryData<string, Player> Data = new()
+    {
         { @"""TEST<0><[U:0:123456789]><TERRORIST>""", new(0, "TEST", "[U:0:123456789]", "TERRORIST") },
         { @"""TEST<1><[U:0:123456789]><TERRORIST>""", new(1, "TEST", "[U:0:123456789]", "TERRORIST") },
     };

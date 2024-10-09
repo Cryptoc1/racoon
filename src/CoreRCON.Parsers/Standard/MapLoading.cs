@@ -7,5 +7,8 @@ public record MapLoading(string Map) : IParseable<MapLoading>;
 
 public sealed class MapLoadingParser() : RegexParser<MapLoading>(@"^Loading map ""(?<Map>.+?)""")
 {
-    protected override MapLoading Convert(GroupCollection groups) => new(groups["Map"].Value);
+    protected override MapLoading Convert(GroupCollection groups)
+    {
+        return new(groups["Map"].Value);
+    }
 }

@@ -2,9 +2,13 @@
 
 namespace CoreRCON.Internal;
 
-internal static class NewLineSanitizer
+internal static partial class NewLineSanitizer
 {
-    private static readonly Regex pattern = new(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline);
+    public static string Sanitize(string value)
+    {
+        return Pattern().Replace(value, Environment.NewLine);
+    }
 
-    public static string Sanitize(string value) => pattern.Replace(value, Environment.NewLine);
+    [GeneratedRegex(@"\r\n|\n\r|\n|\r", RegexOptions.Multiline | RegexOptions.CultureInvariant)]
+    private static partial Regex Pattern();
 }

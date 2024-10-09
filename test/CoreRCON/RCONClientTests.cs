@@ -1,8 +1,5 @@
-using System.Configuration.Assemblies;
 using System.Net;
 using System.Net.Sockets;
-using System.Resources;
-using CoreRCON.PacketFormats;
 
 namespace CoreRCON.Tests;
 

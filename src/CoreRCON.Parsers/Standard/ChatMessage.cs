@@ -13,9 +13,11 @@ public enum MessageChannel
 
 public sealed class ChatMessageParser() : RegexParser<ChatMessage>(@$"(?<Sender>{PlayerParser.Shared.Pattern}) (?<Channel>say_team|say) ""(?<Message>.+?)""")
 {
-    protected override ChatMessage Convert(GroupCollection groups) => new(
-        groups["Channel"].Value == "say" ? MessageChannel.All : MessageChannel.Team,
-        groups["Message"].Value,
-        PlayerParser.Shared.Parse(groups["Sender"])
-    );
+    protected override ChatMessage Convert(GroupCollection groups)
+    {
+        return new(
+            groups["Channel"].Value == "say" ? MessageChannel.All : MessageChannel.Team,
+            groups["Message"].Value,
+            PlayerParser.Shared.Parse(groups["Sender"].Value));
+    }
 }

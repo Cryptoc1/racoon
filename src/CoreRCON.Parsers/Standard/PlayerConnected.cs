@@ -9,8 +9,10 @@ public record PlayerConnected(IPEndPoint Host, Player Player) : IParseable<Playe
 
 public sealed class PlayerConnectedParser() : RegexParser<PlayerConnected>(@$"(?<Player>{PlayerParser.Shared.Pattern}) connected, address ""(?<Host>.+?):(?<Port>\d+)""")
 {
-    protected override PlayerConnected Convert(GroupCollection groups) => new(
-        new(IPAddress.Parse(groups["Host"].Value), int.Parse(groups["Port"].Value, CultureInfo.InvariantCulture)),
-        PlayerParser.Shared.Parse(groups["Player"])
-    );
+    protected override PlayerConnected Convert(GroupCollection groups)
+    {
+        return new(
+            new(IPAddress.Parse(groups["Host"].Value), int.Parse(groups["Port"].Value, CultureInfo.InvariantCulture)),
+            PlayerParser.Shared.Parse(groups["Player"].Value));
+    }
 }

@@ -24,6 +24,6 @@ public sealed class StartedParserTests
         var parser = new ParserPool().Get<Started>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(StartedParser), parser);
+        Assert.IsType<StartedParser>(parser);
     }
 }

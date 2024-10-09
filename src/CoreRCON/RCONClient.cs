@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using CoreRCON.Internal;
-using CoreRCON.PacketFormats;
 using CoreRCON.Parsers;
 using CoreRCON.Parsers.Abstractions;
 
@@ -36,7 +34,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
     {
         null => RCONClientState.Disconnected,
         < TaskStatus.RanToCompletion => _connection?.Connected is true ? RCONClientState.Connected : RCONClientState.Connecting,
-        TaskStatus.RanToCompletion => _connection?.Connected is true ? _authenticationCompletion.Task.Result is true ? RCONClientState.Authenticated : RCONClientState.Connected : RCONClientState.Disconnected,
+        TaskStatus.RanToCompletion => _connection?.Connected is true ? _authenticationCompletion.Task.Result ? RCONClientState.Authenticated : RCONClientState.Connected : RCONClientState.Disconnected,
         _ => RCONClientState.Disconnected,
     };
 
@@ -133,7 +131,10 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
 
             if (completed == _authenticationCompletion?.Task)
             {
-                if (await _authenticationCompletion.Task.ConfigureAwait(false)) return;
+                if (await _authenticationCompletion.Task.ConfigureAwait(false))
+                {
+                    return;
+                }
             }
 
             throw new RCONAuthenticationException();
@@ -184,7 +185,10 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
             e.Handled = true;
 
             // Failed auth responses return with an ID of -1
-            if (e.Packet.Id is -1) _authenticationCompletion?.SetResult(false);
+            if (e.Packet.Id is -1)
+            {
+                _authenticationCompletion?.SetResult(false);
+            }
 
             _authenticationCompletion?.SetResult(true);
             return;
@@ -238,7 +242,11 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
             await ConnectAsync();
         }
 
-        if (_connection is null) throw new RCONCommandException($"The connection has not been established. Ensure '{nameof(ConnectAsync)}' is called before '{nameof(SendCommandAsync)}'.", command);
+        if (_connection is null)
+        {
+            throw new RCONCommandException($"The connection has not been established. Ensure '{nameof(ConnectAsync)}' is called before '{nameof(SendCommandAsync)}'.", command);
+        }
+
         await _commandLock.WaitAsync(cancellation).ConfigureAwait(false);
 
         var packet = new RCONPacket(
@@ -324,7 +332,10 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
 
         public void Cancel()
         {
-            if (completion.TrySetCanceled()) Reset();
+            if (completion.TrySetCanceled())
+            {
+                Reset();
+            }
         }
 
         public void Complete(string content)
@@ -347,7 +358,7 @@ public sealed class RCONClient(IPEndPoint endpoint, string password, RCONClientO
 
     private static class Tracing
     {
-        private static readonly Version AssemblyVersion = typeof(RCONClient).Assembly.GetName().Version;
+        private static readonly Version AssemblyVersion = typeof(RCONClient).Assembly.GetName().Version!;
         private static string LibraryVersion => $"{AssemblyVersion.Major}.{AssemblyVersion.Minor}.{AssemblyVersion.Build}";
 
         public static readonly ActivitySource Source = new("CoreRCON.RCONClient", LibraryVersion);
@@ -393,6 +404,7 @@ public sealed class RCONClientOptions
     }
 }
 
+/// <summary> Represents the current state of an <see cref="RCONClient"/>. </summary>
 public enum RCONClientState
 {
     Disconnected,

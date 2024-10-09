@@ -1,5 +1,3 @@
-using System.Data;
-using System.Reflection;
 using CoreRCON.Parsers.Abstractions;
 using CoreRCON.Parsers.Standard;
 
@@ -35,12 +33,26 @@ public sealed class ParserPoolTests
 public sealed class TestParseable : IParseable<TestParseable>;
 public sealed class TestParser : IParser<TestParseable>
 {
-    public bool IsMatch(string input) => throw new NotImplementedException();
-    public TestParseable Parse(string input) => throw new NotImplementedException();
+    public bool IsMatch(string value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public TestParseable Parse(string value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public sealed class TestStatusParser : IParser<Status>
 {
-    public bool IsMatch(string input) => throw new NotImplementedException();
-    public Status Parse(string input) => throw new NotImplementedException();
+    public bool IsMatch(string value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Status Parse(string value)
+    {
+        throw new NotImplementedException();
+    }
 }

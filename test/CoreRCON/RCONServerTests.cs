@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.Net;
-using System.Net.Sockets;
 
 namespace CoreRCON.Tests;
 
@@ -32,7 +30,7 @@ public sealed class RCONServerTests
         var listening = accessor.Server.ListenAsync();
 
         accessor.Server.Dispose();
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => listening);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => listening);
     }
 
     [Fact(DisplayName = "ListenAsync: throws when cancelled")]

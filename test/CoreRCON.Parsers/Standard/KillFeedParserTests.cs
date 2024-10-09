@@ -23,10 +23,10 @@ public sealed class KillFeedParserTests
         var parser = new ParserPool().Get<KillFeed>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(KillFeedParser), parser);
+        Assert.IsType<KillFeedParser>(parser);
     }
 
-    public static TheoryData<string, KillFeed> Data = new()
+    public static readonly TheoryData<string, KillFeed> Data = new()
     {
         {
             @"""TEST<0><[U:0:123456789]><TERRORIST>"" killed ""TEST1<1><[U:0:123456789]><TERRORIST>"" with ""ak47""",

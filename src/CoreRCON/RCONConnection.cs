@@ -1,19 +1,17 @@
 using System.Buffers;
-using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Net.Sockets;
-using CoreRCON.PacketFormats;
-
-#if NETSTANDARD2_1_OR_GREATER
-#else
-using CoreRCON.Internal;
-#endif
 
 namespace CoreRCON;
 
 public sealed class RCONConnection : IDisposable
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _disposing = new();
+#else
     private readonly object _disposing = new();
+#endif
+
     private readonly Pipe _pipe;
 
     private Socket? _socket;
@@ -38,6 +36,7 @@ public sealed class RCONConnection : IDisposable
             .ContinueWith(_ => Disconnected?.Invoke(this, EventArgs.Empty), TaskContinuationOptions.ExecuteSynchronously);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock (_disposing)
@@ -63,17 +62,7 @@ public sealed class RCONConnection : IDisposable
             var buffer = writer.GetMemory(RCONPacketDefaults.MinPacketSize + sizeof(int));
             try
             {
-#if NETSTANDARD2_1_OR_GREATER
-                int read = await socket.ReceiveAsync(
-                    buffer,
-                    SocketFlags.None,
-                    CancellationToken.None).ConfigureAwait(false);
-#else
-                int read = await SocketTaskExtensions.ReceiveAsync(
-                    socket,
-                    BufferHelper.AsSegment(buffer),
-                    SocketFlags.None).ConfigureAwait(false);
-#endif
+                var read = await socket.ReceiveAsync(buffer, SocketFlags.None, CancellationToken.None);
                 if (read is 0)
                 {
                     break;
@@ -123,7 +112,10 @@ public sealed class RCONConnection : IDisposable
                 reader.AdvanceTo(start, buffer.End);
             }
 
-            if ((buffer.IsEmpty && result.IsCompleted) || result.IsCompleted) break;
+            if ((buffer.IsEmpty && result.IsCompleted) || result.IsCompleted)
+            {
+                break;
+            }
         }
 
         await reader.CompleteAsync().ConfigureAwait(false);
@@ -132,13 +124,7 @@ public sealed class RCONConnection : IDisposable
         {
             if (buffer.Length >= sizeof(int))
             {
-                var data = buffer.Slice(buffer.Start, sizeof(int)).ToArray();
-
-#if NETSTANDARD2_1_OR_GREATER
-                size = BitConverter.ToInt32(data);
-#else
-                size = BitConverter.ToInt32(data, 0);
-#endif
+                size = BitConverter.ToInt32(buffer.Slice(buffer.Start, sizeof(int)).ToArray());
                 return true;
             }
 
@@ -147,7 +133,10 @@ public sealed class RCONConnection : IDisposable
         }
     }
 
-    private void OnPacketReceived(RCONPacket packet) => PacketReceived?.Invoke(this, new(this, packet));
+    private void OnPacketReceived(RCONPacket packet)
+    {
+        PacketReceived?.Invoke(this, new(this, packet));
+    }
 
     /// <summary> Send the given <paramref name="packet"/> on the connection. </summary>
     /// <param name="packet"> The packet to be sent. </param>
@@ -156,7 +145,10 @@ public sealed class RCONConnection : IDisposable
     /// <exception cref="RCONException"> The underlying socket is no longer connected. </exception>
     public async ValueTask SendAsync(RCONPacket packet, CancellationToken cancellation = default)
     {
-        if (_socket?.Connected is not true) throw new RCONException("The underlying socket is no longer connected.");
+        if (_socket?.Connected is not true)
+        {
+            throw new RCONException("The underlying socket is no longer connected.");
+        }
 
         using var rented = MemoryPool<byte>.Shared.Rent(packet.Size + sizeof(int));
 
@@ -166,16 +158,10 @@ public sealed class RCONConnection : IDisposable
             return;
         }
 
-#if NETSTANDARD2_1_OR_GREATER
         await _socket.SendAsync(
             rented.Memory[..written],
             SocketFlags.None,
             cancellation).ConfigureAwait(false);
-#else
-        await _socket.SendAsync(
-            BufferHelper.AsSegment(rented.Memory[..written]),
-            SocketFlags.None).ConfigureAwait(false);
-#endif
     }
 }
 

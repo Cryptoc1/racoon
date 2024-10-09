@@ -23,10 +23,11 @@ public sealed class MapLoadingParserTests
         var parser = new ParserPool().Get<MapLoading>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(MapLoadingParser), parser);
+        Assert.IsType<MapLoadingParser>(parser);
     }
 
-    public static TheoryData<string, MapLoading> Data = new() {
+    public static readonly TheoryData<string, MapLoading> Data = new()
+    {
         { @"Loading map ""de_dust2""", new("de_dust2") },
         { @"Loading map ""workshop\1234""", new(@"workshop\1234") },
     };

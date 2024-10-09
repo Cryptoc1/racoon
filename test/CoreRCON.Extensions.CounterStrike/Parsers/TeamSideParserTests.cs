@@ -24,10 +24,10 @@ public sealed class TeamSideParserTests
         var parser = new ParserPool().Get<TeamSide>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(TeamSideParser), parser);
+        Assert.IsType<TeamSideParser>(parser);
     }
 
-    public static TheoryData<string, TeamSide> Data = new()
+    public static readonly TheoryData<string, TeamSide> Data = new()
     {
         { @"Team playing ""TEST"": TESTING", new("TEST", "TESTING")}
     };

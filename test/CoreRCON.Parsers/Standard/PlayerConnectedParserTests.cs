@@ -24,10 +24,10 @@ public sealed class PlayerConnectedParserTests
         var parser = new ParserPool().Get<PlayerConnected>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(PlayerConnectedParser), parser);
+        Assert.IsType<PlayerConnectedParser>(parser);
     }
 
-    public static TheoryData<string, PlayerConnected> Data = new()
+    public static readonly TheoryData<string, PlayerConnected> Data = new()
     {
         {
             @"""TEST<0><[U:0:123456789]><TERRORIST>"" connected, address ""127.0.0.1:27015""",

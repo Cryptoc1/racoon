@@ -2,13 +2,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using CoreRCON.Internal;
 
-namespace CoreRCON.PacketFormats;
+namespace CoreRCON;
 
 /// <summary> Represents a Source RCON Packet. </summary>
 /// <param name="Id"> Some kind of identifier to keep track of responses from the server. </param>
 /// <param name="Type"> What the server is supposed to do with the body of this packet. </param>
 /// <param name="Body"> The actual information held within. </param>
-/// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
+/// <see href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Valve: Source RCON Protocoal</see>
 public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Body)
 {
     /// <summary> The size of the packet. </summary>
@@ -19,11 +19,14 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
     /// <remarks> Body is serialized as UTF8. </remarks>
     /// <returns> The number of bytes written. </returns>
     /// <exception cref="ArgumentOutOfRangeException"> The given buffer is not large enough to serialize the packet. </exception>
-    /// <seealso cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
+    /// <seealso href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Basic_Packet_Structure" />
     public int GetBytes(in Span<byte> buffer)
     {
         var size = Size;
-        if (buffer.Length < size + sizeof(int)) throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Buffer must be have a length of at least {size + sizeof(int)} to serialize packet.");
+        if (buffer.Length < size + sizeof(int))
+        {
+            throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Buffer must be have a length of at least {size + sizeof(int)} to serialize packet.");
+        }
 
         var written = 0;
         Write(buffer, ref written, BitConverter.GetBytes(size));
@@ -44,35 +47,6 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
         }
     }
 
-    public static bool TryFromBytes(in byte[] buffer, out RCONPacket packet)
-    {
-#if NETSTANDARD2_1_OR_GREATER
-        ReadOnlySpan<byte> casted = buffer;
-        return TryFromBytes(casted, out packet);
-#else
-        if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
-        {
-            var size = BitConverter.ToInt32(buffer, 0);
-            if (size >= RCONPacketDefaults.MinPacketSize && buffer.Length == size + sizeof(int))
-            {
-                if (BufferHelper.TryGetString(buffer, RCONPacketDefaults.MinPacketSize + 2, size - RCONPacketDefaults.MinPacketSize, out var body))
-                {
-                    packet = new(
-                        BitConverter.ToInt32(buffer, 4),
-                        (RCONPacketType)BitConverter.ToInt32(buffer, 8),
-                        NewLineSanitizer.Sanitize(body).TrimEnd());
-
-                    return true;
-                }
-            }
-        }
-
-        packet = default;
-        return false;
-#endif
-    }
-
-#if NETSTANDARD2_1_OR_GREATER
     public static bool TryFromBytes(in ReadOnlySpan<byte> buffer, out RCONPacket packet)
     {
         if (buffer.Length >= RCONPacketDefaults.MinPacketSize + sizeof(int))
@@ -97,9 +71,9 @@ public readonly record struct RCONPacket(int Id, RCONPacketType Type, string Bod
         packet = default;
         return false;
     }
-#endif
 }
 
+/// <summary> Default values and constants. </summary>
 public static class RCONPacketDefaults
 {
     /// <summary> The maximum size of an RCON packet. </summary>
@@ -111,7 +85,7 @@ public static class RCONPacketDefaults
 }
 
 /// <summary> Defines the type of data represented in an <see cref="RCONPacket"/>. </summary>
-/// <see cref="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Packet_Type"/>
+/// <see href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Packet_Type"/>
 public enum RCONPacketType
 {
     /// <summary> Indicates a packet is a response to an <see cref="ExecCommand"/> packet. </summary>

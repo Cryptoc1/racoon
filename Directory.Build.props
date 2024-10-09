@@ -8,9 +8,10 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ImplicitUsings>true</ImplicitUsings>
     <IncludeSymbols>true</IncludeSymbols>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
 
     <!-- Disable legacy analyzers and enable NET/Roslyn analyzers -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -37,7 +38,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0-preview.*" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 

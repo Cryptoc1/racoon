@@ -23,10 +23,10 @@ public sealed class TeamChangeParserTets
         var parser = new ParserPool().Get<TeamChange>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(TeamChangeParser), parser);
+        Assert.IsType<TeamChangeParser>(parser);
     }
 
-    public static TheoryData<string, TeamChange> Data = new()
+    public static readonly TheoryData<string, TeamChange> Data = new()
     {
         { @"""TEST<0><[U:0:123456789]><TERRORIST>"" joined team ""Terrorists""", new(new(0, "TEST", "[U:0:123456789]", "TERRORIST"), "Terrorists") },
     };

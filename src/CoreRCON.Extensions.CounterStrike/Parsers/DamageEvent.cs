@@ -14,16 +14,17 @@ public sealed class DamageEventParser() : RegexParser<DamageEvent>(
     @"\(damage_armor ""(?<ArmorDamage>\d+)""\) " +
     @"\(health ""(?<Health>\d+)""\) " +
     @"\(armor ""(?<Armor>\d+)""\) " +
-    @"\(hitgroup ""(?<Hitgroup>.*?)""\)"
-)
+    @"\(hitgroup ""(?<Hitgroup>.*?)""\)")
 {
-    protected override DamageEvent Convert(GroupCollection groups) => new(
-        int.Parse(groups["ArmorDamage"].Value, CultureInfo.InvariantCulture),
-        PlayerParser.Shared.Parse(groups["Attacker"]),
-        int.Parse(groups["Damage"].Value, CultureInfo.InvariantCulture),
-        groups["Hitgroup"].Value,
-        int.Parse(groups["Health"].Value, CultureInfo.InvariantCulture),
-        int.Parse(groups["Armor"].Value, CultureInfo.InvariantCulture),
-        PlayerParser.Shared.Parse(groups["Target"])
-    );
+    protected override DamageEvent Convert(GroupCollection groups)
+    {
+        return new(
+            int.Parse(groups["ArmorDamage"].Value, CultureInfo.InvariantCulture),
+            PlayerParser.Shared.Parse(groups["Attacker"].Value),
+            int.Parse(groups["Damage"].Value, CultureInfo.InvariantCulture),
+            groups["Hitgroup"].Value,
+            int.Parse(groups["Health"].Value, CultureInfo.InvariantCulture),
+            int.Parse(groups["Armor"].Value, CultureInfo.InvariantCulture),
+            PlayerParser.Shared.Parse(groups["Target"].Value));
+    }
 }

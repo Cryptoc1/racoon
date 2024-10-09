@@ -1,5 +1,4 @@
 using CoreRCON.Parsers.Standard;
-using Microsoft.VisualBasic;
 
 namespace CoreRCON.Parsers.Tests.Standard;
 
@@ -24,10 +23,10 @@ public sealed class NameChangeParserTests
         var parser = new ParserPool().Get<NameChange>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(NameChangeParser), parser);
+        Assert.IsType<NameChangeParser>(parser);
     }
 
-    public static TheoryData<string, NameChange> Data = new()
+    public static readonly TheoryData<string, NameChange> Data = new()
     {
         { @"""TEST<0><[U:0:123456789]><TERRORIST>"" changed name to ""TESTING""", new("TESTING", new(0, "TEST", "[U:0:123456789]", "TERRORIST")) }
     };

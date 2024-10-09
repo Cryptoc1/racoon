@@ -1,4 +1,3 @@
-using System.Net;
 using CoreRCON.Parsers.Standard;
 
 namespace CoreRCON.Parsers.Tests.Standard;
@@ -24,10 +23,10 @@ public sealed class PlayerDisconnectedParserTests
         var parser = new ParserPool().Get<PlayerDisconnected>();
 
         Assert.NotNull(parser);
-        Assert.IsType(typeof(PlayerDisconnectedParser), parser);
+        Assert.IsType<PlayerDisconnectedParser>(parser);
     }
 
-    public static TheoryData<string, PlayerDisconnected> Data = new()
+    public static readonly TheoryData<string, PlayerDisconnected> Data = new()
     {
         {
             @"""TEST<0><[U:0:123456789]><TERRORIST>"" disconnected (reason ""Unit Test"")",
