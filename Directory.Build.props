@@ -2,16 +2,19 @@
 
   <PropertyGroup>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <DefaultItemExcludesInProjectFolder>$(DefaultItemExcludesInProjectFolder);packages.lock.json;package.json;package-lock.json</DefaultItemExcludesInProjectFolder>
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
     <Features>strict</Features>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ImplicitUsings>true</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
     <IncludeSymbols>true</IncludeSymbols>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
 
     <!-- Disable legacy analyzers and enable NET/Roslyn analyzers -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -19,6 +22,8 @@
     <RunAnalyzers>true</RunAnalyzers>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
   </PropertyGroup>
 
   <!-- NuGet/AssemblyInfo -->

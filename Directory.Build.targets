@@ -1,6 +1,7 @@
 <Project>
 
   <PropertyGroup Condition=" '$(IsTestProject)' == 'true' ">
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);CA1707;CS1591;SA1600;</NoWarn>
@@ -15,7 +16,7 @@
 
   <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
 
