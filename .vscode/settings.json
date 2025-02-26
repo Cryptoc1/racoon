@@ -2,7 +2,6 @@
   "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
   "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
   "dotnet.defaultSolution": "CoreRCON.sln",
-  "dotnet.implementType.propertyGenerationBehavior": "preferAutoProperties",
   "dotnet.navigation.navigateToDecompiledSources": true,
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
@@ -24,8 +23,6 @@
   },
   "omnisharp.enableLspDriver": true,
   "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.organizeImportsOnFormat": true,
-  "omnisharp.sdkIncludePrereleases": true,
   "omnisharp.useEditorFormattingSettings": false,
   "omnisharp.useModernNet": true
 }
