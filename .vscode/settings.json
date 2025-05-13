@@ -1,7 +1,7 @@
 {
   "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
   "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
-  "dotnet.defaultSolution": "CoreRCON.sln",
+  "dotnet.defaultSolution": "CoreRCON.slnx",
   "dotnet.navigation.navigateToDecompiledSources": true,
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
