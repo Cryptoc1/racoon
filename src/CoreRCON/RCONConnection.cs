@@ -30,8 +30,8 @@ public sealed class RCONConnection : IDisposable
         _pipe = new();
         _socket = socket;
 
-        var writing = Write(_pipe.Writer, _socket);
-        var reading = Read(_pipe.Reader, OnPacketReceived);
+        var writing = Task.Run(() => Write(_pipe.Writer, _socket));
+        var reading = Task.Run(() => Read(_pipe.Reader, OnPacketReceived));
         Closed = Task.WhenAny(reading, writing)
             .ContinueWith(_ => Disconnected?.Invoke(this, EventArgs.Empty), TaskContinuationOptions.ExecuteSynchronously);
     }
