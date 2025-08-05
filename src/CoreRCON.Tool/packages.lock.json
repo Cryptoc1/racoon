@@ -130,13 +130,13 @@
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "Transitive",
-        "resolved": "9.0.7",
-        "contentHash": "i0uHOKl+qabSYMpY8i676wgi8TI9D3yJIh9s8eog9xhcIqWiA+8khfYkAumCmTkJNMsI7qV527VTeSiQc6tPWA=="
+        "resolved": "9.0.8",
+        "contentHash": "Lj8/a1Hzli1z6jo8H9urc16GxkpVJtJM+W9fmivXMNu7nwzHziGkxn4vO0DFscMbudkEVKSezdDuHk5kgM0X/g=="
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "9.0.7",
-        "contentHash": "I9KHYFNKQkufs/Ec7evpPPSu2HkuW+jNpq1kT0WOWjzuN6BjxRYy7CuWNLjQmuBzcKd9vKrHaPGcHVxSF5DadQ=="
+        "resolved": "9.0.8",
+        "contentHash": "6vPmJt73mgUo1gzc/OcXlJvClz/2jxZ4TQPRfriVaLoGRH2mye530D9WHJYbFQRNMxF3PWCoeofsFdCyN7fLzA=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -147,8 +147,8 @@
         "type": "Project",
         "dependencies": {
           "CoreRCON.Parsers": "[1.0.0, )",
-          "System.Diagnostics.DiagnosticSource": "[9.0.7, )",
-          "System.IO.Pipelines": "[9.0.7, )"
+          "System.Diagnostics.DiagnosticSource": "[9.0.8, )",
+          "System.IO.Pipelines": "[9.0.8, )"
         }
       },
       "corercon.parsers": {
