@@ -5,7 +5,7 @@
       "name": "Debug Tool",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceFolder}/src/CoreRCON.Tool/bin/Debug/net8.0/CoreRCON.Tool.dll",
+      "program": "${workspaceFolder}/src/CoreRCON.Tool/bin/Debug/net9.0/CoreRCON.Tool.dll",
       "env": {
         "DOTNET_ENVIRONMENT": "Development"
       },

@@ -23,7 +23,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
+    <TargetFrameworks>net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <!-- NuGet/AssemblyInfo -->
