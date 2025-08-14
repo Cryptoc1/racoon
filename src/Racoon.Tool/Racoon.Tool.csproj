@@ -6,7 +6,6 @@
     <MinVerTagPrefix>tool-v</MinVerTagPrefix>
     <PackAsTool>true</PackAsTool>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PublishTrimmed>true</PublishTrimmed>
     <TargetFramework>net9.0</TargetFramework>
     <ToolCommandName>racoon</ToolCommandName>
     <TrimMode>partial</TrimMode>

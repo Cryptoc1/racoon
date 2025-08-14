@@ -5,4 +5,4 @@
 Enhanced Racoon support for Counter-Strike 2 Dedicated Servers.
 
 ## Commonly Used Types
-- [`RCONClientExtensions`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Extensions.CounterStrike/RCONClientExtensions.cs): Provides extension methods for common CS2 commands.
+- [`RCONClientExtensions`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Extensions.CounterStrike/RCONClientExtensions.cs): Provides extension methods for common CS2 commands.
