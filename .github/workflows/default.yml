@@ -102,6 +102,12 @@ jobs:
           show_missing: true
           skip_covered: false
 
+      - name: publish coverage results
+        if: success() || failure()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   pack:
     needs: [test]
 

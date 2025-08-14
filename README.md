@@ -2,7 +2,14 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/github/v/tag/cryptoc1/racoon)
+![Racoon Version](https://img.shields.io/github/v/tag/cryptoc1/racoon?filter=v*&label=Racoon)
+![Racoon.Extensions.CounterStrike Version](https://img.shields.io/github/v/tag/cryptoc1/racoon?filter=cs-v*&label=Racoon.Extensions.CounterStrike)
+![Racoon.Tool Version](https://img.shields.io/github/v/tag/cryptoc1/racoon?filter=tool-v*&label=Racoon.Tool)
+
+</div>
+
+<div align="center">
+
 ![Language](https://img.shields.io/github/languages/top/cryptoc1/racoon)
 [![Checks](https://img.shields.io/github/checks-status/cryptoc1/racoon/main)](https://github.com/cryptoc1/racoon/actions/workflows/default.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/cryptoc1/racoon)](https://app.codecov.io/gh/cryptoc1/racoon)
@@ -11,21 +18,23 @@
 
 Racoon, originally a fork of [CoreRCON](https://github.com/Challengermode/CoreRcon), is an implementation of the RCON protocol in pure .NET.
 
-## Features
+## Libraries
 
-- [`Racoon`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon): The main library
+- [`Racoon`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon): A .NET implementation of the Source RCON Protocol
   - Supports connecting to a RCON server via [`RCONClient`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon/RCONClient.cs)
   - Supports hosting a RCON server via [`RCONServer`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon/RCONServer.cs)
+
 - [`Racoon.Extensions.CounterStrike`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Extensions.CounterStrike): Enhanced support for connecting to CS2 RCON servers
   - Provides parsers for common messages in CS2
   - Provides [extensions](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Extensions.CounterStrike/RCONClientExtensions.cs) for common CS2 console commands
+
 - [`Racoon.Parsers`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers): Low-level message parsing library
   - Defines the [`IParser<T>`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers/Abstractions/IParser{T}.cs) interface
   - Provides built-in parsers for standard RCON message, such as [`ChatMessage`]((https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers/Standard/ChatMessage.cs))
-- [`Racoon.Tool`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Tool): Connect to an RCON server in the CLI with a .NET tool:
+
+- [`Racoon.Tool`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Tool): Connect to an RCON server in the CLI with a .NET tool
   ```bash
   $ dotnet tool install -g Racoon.Tool
-  $ racoon [host]
   ```
 
 ## Credits
