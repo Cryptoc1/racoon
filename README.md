@@ -1,73 +1,34 @@
-![CoreRcon](https://raw.githubusercontent.com/Challengermode/CoreRCON/master/logo.png)
+<h1 align="center">Racoon</h1>
 
-[![Nuget](https://img.shields.io/nuget/v/CoreRCON)](https://www.nuget.org/packages/CoreRCON/) [![Nuget](https://img.shields.io/nuget/dt/CoreRCON)](https://www.nuget.org/packages/CoreRCON/)
+<div align="center">
 
-CoreRCON is an implementation of the RCON protocol on .NET Core. It currently supports connecting to a server, sending commands and receiving their output, [multi-packat responses](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Multiple-packet_Responses), and receiving logs from `logaddress`.
+![Version](https://img.shields.io/github/v/tag/cryptoc1/racoon)
+![Language](https://img.shields.io/github/languages/top/cryptoc1/racoon)
+[![Checks](https://img.shields.io/github/checks-status/cryptoc1/racoon/main)](https://github.com/cryptoc1/racoon/actions/workflows/default.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/cryptoc1/racoon)](https://app.codecov.io/gh/cryptoc1/racoon)
 
-### Supports:
-* **CS2**, **TF2** - (see [Source RCON Protocol](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol))
-* **Minecraft** - Thanks to [CodingContraption](https://github.com/ScottKaye/CoreRCON/pull/7)
-* **ARK: Survival Evolved** - Confirmed working in 3.0.0 by [tgardner851](https://github.com/ScottKaye/CoreRCON/issues/10)
-* **Project Zomboid Multiplayer** - Confirmed working by [captainqwerty](https://github.com/Challengermode/CoreRcon/issues/26)
-* **Palworld** - Thanks to [ExusAltimus](https://github.com/Challengermode/CoreRcon/pull/57)
-* Potentially other Source-based RCON implementations (untested)
+</div>
 
-## Quick Start
-### Connect to an RCON server and send a command
-The IP address supplied here is the server you wish to connect to.
-```cs
-using CoreRCON;
-using CoreRCON.Parsers.Standard;
-using System.Net;
-// ...
+Racoon, originally a fork of [CoreRCON](https://github.com/Challengermode/CoreRcon), is an implementation of the RCON protocol in pure .NET. 
 
-// Connect to a server
-using var rcon = new RCON(IPAddress.Parse("10.0.0.1"), 27015, "secret-password");
-await rcon.ConnectAsync();
+## Features
 
-// Send a simple command and retrive response as string
-string response = await rcon.SendCommandAsync("echo hi");
+- [`Racoon`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon): The main library
+  - Supports connecting to a RCON server via [`RCONClient`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon/RCONClient.cs)
+  - Supports hosting a RCON server via [`RCONServer`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon/RCONServer.cs)
+- [`Racoon.Extensions.CounterStrike`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Extensions.CounterStrike): Enhanced support for connecting to CS2 RCON servers
+  - Provides parsers for common messages in CS2
+  - Provides [extensions](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Extensions.CounterStrike/RCONClientExtensions.cs) for common CS2 console commands
+- [`Racoon.Parsers`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Parsers): Low-level message parsing library
+  - Defines the [`IParser<T>`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Parsers/Abstractions/IParser{T}.cs) interface
+  - Provides built-in parsers for standard RCON message, such as [`ChatMessage`]((https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Parsers/Standard/ChatMessage.cs))
+- [`Racoon.Tool`](https://github.com/cryptoc1/raccon/tree/main/src/Racoon.Tool): A .NET CLI tool
+  - Access an RCON shell using the .NET CLI:
+    ```
+    $ dotnet tool install Racoon.Tool
+    $ dotnet racoon
+    ```
 
-// Send "status" and try to parse the response
-Status status = await rcon.SendCommandAsync<Status>("status");
+## Credits
 
-Console.WriteLine($"Connected to: {status.Hostname}");
-```
-
-### Listen for chat messages on the server
-This assumes you have been added to the server's `logaddress` list.  You do not need to make an rcon connection to receive logs from a server.
-
-The port specified must be open (check your router settings) and unused.  Pass a value of `0` to use the first-available port.  Access `log.ResolvedPort` to see which port it chose.
-
-Finally, pass an array (or list of params) of `IPEndPoints` to express which servers you would like to receive logs from.  This is because any server can send your server logs if they know which port you are listening on, as it's just UDP.
-
-```csharp
-using CoreRCON;
-using CoreRCON.Parsers.Standard;
-
-// Listen on port 50000 for log packets coming from 10.0.0.1:27015
-using var log = new LogReceiver(50000, new IPEndPoint(IPAddress.Parse("10.0.0.1"), 27015));
-
-var chat = await WaitForChat(log);
-Console.WriteLine(chat);
-
-static async Task<ChatMessage> WaitForChat(LogReceiver log)
-{
-    var completion = new TaskCompletionSource<ChatMessage>();
-    using(log.Listen<ChatMessage>(completion.SetResult))
-    {
-        return await completion.Task;
-    }
-}
-```
-
-## Troubleshooting
-### Can't install via NuGet
-> "Could not install package 'CoreRCON X.X.X'. You are trying to install this package into a project that targets '.NETFramework,Version=vy.y.y', but the package does not contain any assembly references or content files that are compatible with that framework. For more information, contact the package author."
-
-If you are seeing an error similar to this, try changing your project's targeted .NET Framework version [[#11]](https://github.com/ScottKaye/CoreRCON/issues/11).  If you are using Visual Studio 2015, the minimum resolvable framework version is **4.7**.  Visual Studio 2017 has improved support for .NET Core packages, allowing CoreRCON to resolve for versions as low as **4.6.1**.
-
-## Changelog
-See [Github Releases](https://github.com/Challengermode/CoreRcon/releases/tag/v5.2.0)
-
-Big thanks to [ScottKaye](https://github.com/ScottKaye) for developing the [original version](https://github.com/ScottKaye/CoreRCON)
+This project started as a fork of [CoreRCON](https://github.com/Challengermode/CoreRcon), credit is due to [ScottKaye](https://github.com/ScottKaye) for developing the [original version](https://github.com/ScottKaye/CoreRCON), and the maintainers at [Challengermode](https://www.challengermode.com/) for maintaining the current version that was forked.

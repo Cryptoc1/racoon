@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Racoon.Extensions.CounterStrike/Racoon.Extensions.CounterStrike.csproj" />
+    <Project Path="src/Racoon.Parsers/Racoon.Parsers.csproj" />
+    <Project Path="src/Racoon.Tool/Racoon.Tool.csproj" />
+    <Project Path="src/Racoon/Racoon.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Racoon.Extensions.CounterStrike/Racoon.Extensions.CounterStrike.Tests.csproj" />
+    <Project Path="test/Racoon.Parsers/Racoon.Parsers.Tests.csproj" />
+    <Project Path="test/Racoon/Racoon.Tests.csproj" />
+  </Folder>
+</Solution>

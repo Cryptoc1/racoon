@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
@@ -33,7 +33,7 @@ jobs:
         run: dotnet restore --locked-mode
 
       - name: build
-        run: dotnet build --no-restore
+        run: dotnet build -c Release --no-restore
 
   test:
     needs: [build]
@@ -55,18 +55,18 @@ jobs:
         run: dotnet restore --locked-mode
 
       - name: test
-        run: foreach( $project in Get-ChildItem "CoreRCON.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" --results-directory TestResults --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
+        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" --results-directory TestResults --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
         shell: pwsh
 
       - name: upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
-          name: corercon-test-results
+          name: racoon-test-results
           path: TestResults
 
       - name: report test results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: test results
@@ -74,7 +74,7 @@ jobs:
           reporter: dotnet-trx
 
       - name: generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
         with:
           reports: TestResults/**/coverage.cobertura.xml
           reporttypes: "Cobertura;MarkdownSummary"
@@ -82,10 +82,10 @@ jobs:
           title: coverage results
 
       - name: upload coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
-          name: corercon-coverage-results
+          name: racoon-coverage-results
           path: CoverageResults
 
       - name: report coverage results
@@ -104,14 +104,16 @@ jobs:
           skip_covered: false
 
   pack:
-    needs: [build]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
@@ -124,7 +126,7 @@ jobs:
         run: dotnet pack -c Release -o .packages --no-restore
 
       - name: upload packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: corercon-packages
+          name: racoon-packages
           path: .packages

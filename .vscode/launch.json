@@ -5,11 +5,11 @@
       "name": "Debug Tool",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceFolder}/src/CoreRCON.Tool/bin/Debug/net9.0/CoreRCON.Tool.dll",
+      "program": "${workspaceFolder}/src/Racoon.Tool/bin/Debug/net9.0/Racoon.Tool.dll",
       "env": {
         "DOTNET_ENVIRONMENT": "Development"
       },
-      "cwd": "${workspaceFolder}/src/CoreRCON.Tool",
+      "cwd": "${workspaceFolder}/src/Racoon.Tool",
       "justMyCode": true,
       "preLaunchTask": "${defaultBuildTask}",
       "requireExactSource": true,

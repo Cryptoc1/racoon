@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>.NET CLI tool for connecting to RCON servers.</Description>
+    <OutputType>Exe</OutputType>
+    <MinVerTagPrefix>tool-v</MinVerTagPrefix>
+    <PackAsTool>true</PackAsTool>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TargetFramework>net9.0</TargetFramework>
+    <ToolCommandName>racoon</ToolCommandName>
+    <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Racoon\Racoon.csproj" />
+  </ItemGroup>
+
+</Project>

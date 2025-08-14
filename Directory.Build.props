@@ -8,10 +8,10 @@
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
     <Features>strict</Features>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>true</ImplicitUsings>
-    <IsAotCompatible>true</IsAotCompatible>
     <IncludeSymbols>true</IncludeSymbols>
+    <IsAotCompatible>true</IsAotCompatible>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
@@ -26,23 +26,30 @@
     <TargetFrameworks>net9.0</TargetFrameworks>
   </PropertyGroup>
 
+  <!-- Git Versioning + Metadata -->
+  <PropertyGroup>
+    <MinVerDefaultPreReleaseIdentifiers>rc.1</MinVerDefaultPreReleaseIdentifiers>
+    <MinVerIgnoreHeight>true</MinVerIgnoreHeight>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
   <!-- NuGet/AssemblyInfo -->
   <PropertyGroup>
-    <Authors>Alexander Westberg-Bladh, Scott Kaye</Authors>
-    <Copyright>$([System.DateTime]::Now.Year) CoreRCON</Copyright>
-    <PackageIcon>logo.png</PackageIcon>
+    <Authors>Samuel Steele</Authors>
+    <Copyright>$([System.DateTime]::Now.Year) Racoon</Copyright>
     <PackageId>$(AssemblyName)</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Challengermode/CoreRcon</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>https://github.com/Challengermode/CoreRcon/releases</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/cryptoc1/racoon/</PackageProjectUrl>
     <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2;</PackageTags>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Challengermode/CoreRcon</RepositoryUrl>
+    <RepositoryUrl>https://github.com/cryptoc1/racoon.git</RepositoryUrl>
     <Title>$(AssemblyName)</Title>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 

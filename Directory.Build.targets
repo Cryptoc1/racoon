@@ -31,4 +31,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <Target Name="SetVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <InformationalVersion>$(PackageVersion)</InformationalVersion>
+      <InformationalVersion Condition=" '$(MinVerBuildMetadata)' != '' ">$(InformationalVersion)+$(MinVerBuildMetadata)</InformationalVersion>
+      <Version>$(PackageVersion)</Version>
+    </PropertyGroup>
+  </Target>
+
 </Project>
