@@ -38,8 +38,7 @@ jobs:
   test:
     needs: [build]
 
-    # NOTE: use windows for net48 tests
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -105,6 +104,7 @@ jobs:
 
   pack:
     needs: [test]
+
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -122,11 +122,36 @@ jobs:
       - name: restore
         run: dotnet restore --locked-mode
 
-      - name: build
-        run: dotnet pack -c Release -o .packages --no-restore
+      - name: pack
+        run: dotnet pack -c Release -o dist --no-restore /p:WarningLevel=0
 
       - name: upload packages
         uses: actions/upload-artifact@v4
         with:
           name: racoon-packages
-          path: .packages
+          path: dist
+
+  # publish:
+  #   if: startsWith(github.ref, 'refs/heads/main')
+  #   needs: [pack]
+
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         sparse-checkout: global.json
+
+  #     - name: setup dotnet
+  #       uses: actions/setup-dotnet@v4
+  #       with:
+  #         cache: false
+  #         global-json-file: global.json
+
+  #     - name: download artifact
+  #       uses: actions/download-artifact@v5
+  #       with:
+  #         name: racoon-packages
+
+  #     - name: push packages
+  #       run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
