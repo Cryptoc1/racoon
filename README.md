@@ -22,13 +22,12 @@ Racoon, originally a fork of [CoreRCON](https://github.com/Challengermode/CoreRc
 - [`Racoon.Parsers`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers): Low-level message parsing library
   - Defines the [`IParser<T>`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers/Abstractions/IParser{T}.cs) interface
   - Provides built-in parsers for standard RCON message, such as [`ChatMessage`]((https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Parsers/Standard/ChatMessage.cs))
-- [`Racoon.Tool`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Tool): A .NET CLI tool
-  - Access an RCON shell using the .NET CLI:
-    ```
-    $ dotnet tool install Racoon.Tool
-    $ dotnet racoon
-    ```
+- [`Racoon.Tool`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Tool): Connect to an RCON server in the CLI with a .NET tool:
+  ```bash
+  $ dotnet tool install -g Racoon.Tool
+  $ racoon [host]
+  ```
 
 ## Credits
 
-This project started as a fork of [CoreRCON](https://github.com/Challengermode/CoreRcon), credit is due to [ScottKaye](https://github.com/ScottKaye) for developing the [original version](https://github.com/ScottKaye/CoreRCON), and the maintainers at [Challengermode](https://www.challengermode.com/) for maintaining the current version that was forked.
+This project started as a fork of [CoreRCON](https://github.com/Challengermode/CoreRcon), credit is due to [ScottKaye](https://github.com/ScottKaye) for developing the [original version](https://github.com/ScottKaye/CoreRCON), and the maintainers at [Challengermode](https://www.challengermode.com/) for the version that was forked.

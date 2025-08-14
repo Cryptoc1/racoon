@@ -43,7 +43,7 @@
     <PackageId>$(AssemblyName)</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/cryptoc1/racoon/</PackageProjectUrl>
-    <PackageTags>valve;rcon;logaddress;cs2;minecraft;tf2;</PackageTags>
+    <PackageTags>valve;rcon;cs2;</PackageTags>
     <RepositoryUrl>https://github.com/cryptoc1/racoon.git</RepositoryUrl>
     <Title>$(AssemblyName)</Title>
   </PropertyGroup>

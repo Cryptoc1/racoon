@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using System.Text;
 using Racoon;
 using Racoon.Extensions;
@@ -10,7 +11,7 @@ using RCONStatus = Racoon.Parsers.Standard.Status;
 var app = new CommandApp<ShellCommand>();
 app.Configure( options =>
 {
-    options.SetApplicationName( "Racoon.Tool" );
+    options.SetApplicationName( "racoon" );
     options.PropagateExceptions();
 } );
 
@@ -22,18 +23,18 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
     {
         if( !parameters.NoLogo )
         {
-            AnsiConsole.Write( new FigletText( "Racoon.Tool" ).Color( Color.MediumSpringGreen ) );
+            AnsiConsole.Write( new FigletText( "Racoon" ).Color( Color.MediumSpringGreen ) );
         }
 
         var host = await ResolveHost( parameters.Host );
         if( host is null )
         {
-            AnsiConsole.Write( $"[bold red]{NerdFontIcon.SearchWeb}[/] Provided host could not be resolved." );
+            AnsiConsole.Write( $"[bold red]<!>[/] Provided host could not be resolved." );
             return ShellExitCode.InvalidHost;
         }
 
         var password = string.IsNullOrWhiteSpace( parameters.Password )
-            ? AnsiConsole.Prompt( new TextPrompt<string>( $"Password{NerdFontIcon.AngleRight}" ).Secret() )
+            ? AnsiConsole.Prompt( new TextPrompt<string>( $"Password>" ).Secret() )
             : parameters.Password;
 
         using var console = new RCONClient( host, parameters.Port, password, new RCONClientOptions( parameters.Timeout, parameters.UseKoraktorMethod ) );
@@ -41,6 +42,10 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         {
             return ShellExitCode.FailedToConnect;
         }
+
+        AnsiConsole.WriteLine();
+        WritePromptHelp();
+        AnsiConsole.WriteLine();
 
         using var cancellation = new CancellationTokenSource();
         console.Disconnected += ( _, _ ) => cancellation.Cancel();
@@ -70,6 +75,11 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
                 AnsiConsole.Clear();
             }
 
+            if( command.Equals( ":help", StringComparison.OrdinalIgnoreCase ) )
+            {
+                WritePromptHelp();
+            }
+
             if( command.Equals( ":q", StringComparison.OrdinalIgnoreCase ) )
             {
                 return 0;
@@ -79,6 +89,14 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         }
 
         return ShellExitCode.Disconnected;
+
+        static void WritePromptHelp( )
+        {
+            AnsiConsole.MarkupLine( "Use [bold tan]:q[/] to exit." );
+            AnsiConsole.MarkupLine( "Use [bold tan]:clear[/] to clear the screen." );
+            AnsiConsole.MarkupLine( "Use [bold tan]arrow up[/]/[bold tan]arrow down[/] to traverse history." );
+            AnsiConsole.MarkupLine( "Use [bold tan]:help[/] to display this help text." );
+        }
     }
 
     private static async Task<IPAddress?> ResolveHost( string host )
@@ -97,7 +115,7 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
         {
             return AnsiConsole.Prompt(
                 new SelectionPrompt<IPAddress>()
-                    .Title( $"Host [green]{host}[/] resolved to multiple addresses {NerdFontIcon.AngleRight}" )
+                    .Title( $"Host [green]{host}[/] resolved to multiple addresses>" )
                     .AddChoices( addresses ) );
         }
 
@@ -108,18 +126,17 @@ internal sealed class ShellCommand : AsyncCommand<ShellParameters>
     {
         try
         {
-            await AnsiConsole.Status()
-                .StartAsync( "Connecting...", async context =>
-                {
-                    context.Spinner( Spinner.Known.Dots3 );
-                    await Task.Delay( retry is 0 ? 250 : 1250 );
+            await AnsiConsole.Status().StartAsync( "Connecting...", async context =>
+            {
+                context.Spinner( Spinner.Known.Dots3 );
+                await Task.Delay( retry is 0 ? 250 : 1250 );
 
-                    await console.ConnectAsync();
-                } );
+                await console.ConnectAsync();
+            } );
         }
         catch( RCONException )
         {
-            return AnsiConsole.Confirm( $"[bold red]{NerdFontIcon.LanDisconnect}[/]Failed to connect to the host, retry?" )
+            return AnsiConsole.Confirm( $"[bold red]<!>[/] Failed to connect to the host, retry?" )
                 && await TryConnect( console, ++retry );
         }
 
@@ -133,15 +150,9 @@ internal sealed class RCONPrompt( RCONStatus status, int capacity = 1024 ) : IDi
 
     private readonly List<string> history = new( capacity );
 
-    public void Dispose( )
-    {
-        history.Clear();
-    }
+    public void Dispose( ) => history.Clear();
 
-    public string Show( IAnsiConsole console )
-    {
-        return ShowAsync( console, CancellationToken.None ).GetAwaiter().GetResult();
-    }
+    public string Show( IAnsiConsole console ) => ShowAsync( console, CancellationToken.None ).GetAwaiter().GetResult();
 
     public async Task<string> ShowAsync( IAnsiConsole console, CancellationToken cancellation )
     {
@@ -238,19 +249,7 @@ internal sealed class RCONPrompt( RCONStatus status, int capacity = 1024 ) : IDi
         history.Add( command );
     }
 
-    private void WritePrompt( IAnsiConsole console )
-    {
-        console.Write(
-                new Markup( $"[bold {(Error ? "orange1" : Color.MediumSpringGreen)}]{NerdFontIcon.LanConnect}[/]{status.Hostname} [bold]{NerdFontIcon.AngleRight}[/] " ) );
-    }
-}
-
-internal static class NerdFontIcon
-{
-    public const string AngleRight = "\uf105";
-    public const string LanConnect = "\udb80\udf18";
-    public const string LanDisconnect = "\udb80\udf19";
-    public const string SearchWeb = "\udb81\udf0f";
+    private void WritePrompt( IAnsiConsole console ) => console.Write( new Markup( $"[bold {(Error ? Color.Orange1 : Color.PaleGreen1_1)}]{(Error ? '!' : '@')}[/] [bold]{status.Hostname}[/]> " ) );
 }
 
 internal static class ShellExitCode
@@ -263,20 +262,29 @@ internal static class ShellExitCode
 internal sealed class ShellParameters : CommandSettings
 {
     [CommandArgument( 0, "<host>" )]
+    [Description( "The IP address or hostname of the server to connect to" )]
     public string Host { get; init; } = default!;
 
     [CommandOption( "--no-logo" )]
+    [Description( "Suppress the logo display (the $RACOON_NOLOGO environment variable is also supported)" )]
     public bool NoLogo { get; init; } = Environment.GetEnvironmentVariable( "RACOON_NOLOGO" )?.Equals( bool.TrueString, StringComparison.OrdinalIgnoreCase ) is true;
 
     [CommandArgument( 1, "[password]" )]
+    [Description( "The RCON password for the server. If not provided, you will be prompted" )]
     public string Password { get; init; } = string.Empty;
 
     [CommandOption( "-p|--port" )]
+    [DefaultValue( ( ushort )27015 )]
+    [Description( "The remote port to connect to" )]
     public ushort Port { get; init; } = 27015;
 
     [CommandOption( "-t|--timeout" )]
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds( 5 );
+    [DefaultValue( "00:00:30" )]
+    [Description( "The timeout duration to use when connecting and sending commands" )]
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds( 30 );
 
     [CommandOption( "--use-koraktor" )]
+    [DefaultValue( false )]
+    [Description( "Whether to use the Koraktor Method for reading packets" )]
     public bool UseKoraktorMethod { get; init; } = false;
 }
