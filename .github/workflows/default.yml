@@ -131,27 +131,27 @@ jobs:
           name: racoon-packages
           path: dist
 
-  # publish:
-  #   if: startsWith(github.ref, 'refs/heads/main')
-  #   needs: [pack]
+  publish:
+    if: startsWith(github.ref, 'refs/heads/main')
+    needs: [pack]
 
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         sparse-checkout: global.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: global.json
 
-  #     - name: setup dotnet
-  #       uses: actions/setup-dotnet@v4
-  #       with:
-  #         cache: false
-  #         global-json-file: global.json
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          cache: false
+          global-json-file: global.json
 
-  #     - name: download artifact
-  #       uses: actions/download-artifact@v5
-  #       with:
-  #         name: racoon-packages
+      - name: download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: racoon-packages
 
-  #     - name: push packages
-  #       run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: push packages
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
