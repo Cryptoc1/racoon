@@ -8,7 +8,7 @@ public sealed class PlayerDisconnectedParserTests
     [MemberData( nameof( Data ) )]
     public void Parser_Matches_And_Parses( string value, PlayerDisconnected disconnected )
     {
-        var parser = new PlayerDisconnectedParser( ParserPool.Shared );
+        var parser = new PlayerDisconnectedParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -20,7 +20,7 @@ public sealed class PlayerDisconnectedParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<PlayerDisconnected>();
+        var parser = ParserPool.CreateDefault().Get<PlayerDisconnected>();
 
         Assert.NotNull( parser );
         Assert.IsType<PlayerDisconnectedParser>( parser );

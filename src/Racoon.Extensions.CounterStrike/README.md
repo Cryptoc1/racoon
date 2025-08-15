@@ -6,3 +6,19 @@ Enhanced Racoon support for Counter-Strike 2 Dedicated Servers.
 
 ## Commonly Used Types
 - [`RCONClientExtensions`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon.Extensions.CounterStrike/RCONClientExtensions.cs): Provides extension methods for common CS2 commands.
+
+## Basic Usage
+
+```csharp
+using Racoon;
+using Racoon.Extensions.CounterStrike;
+
+using var console = new RCONClient(IPAddress.Loopback, 27015, "password", new()
+{
+    OnCreatingParserPool = builder => builder.UseCounterStrike()
+});
+
+await console.ConnectAsync();
+
+// ...
+```

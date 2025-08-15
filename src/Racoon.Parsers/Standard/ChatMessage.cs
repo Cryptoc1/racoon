@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record ChatMessage( MessageChannel Channel, string Message, Player Player ) : IParseable<ChatMessage>;
+public record ChatMessage( MessageChannel Channel, string Message, Player Player ) : IParsed<ChatMessage>;
 
 public enum MessageChannel
 {

@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record TeamChange( Player Player, string Team ) : IParseable<TeamChange>;
+public record TeamChange( Player Player, string Team ) : IParsed<TeamChange>;
 
 public sealed class TeamChangeParser( ParserPool parsers ) : RegexParser<TeamChange>( @$"(?<Player>{PlayerParser.Pattern}) joined team ""(?<Team>.+?)""" )
 {

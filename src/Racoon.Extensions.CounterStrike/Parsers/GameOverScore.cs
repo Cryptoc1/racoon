@@ -4,7 +4,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record GameOverScore( int CTScore, int TScore ) : IParseable<GameOverScore>;
+public record GameOverScore( int CTScore, int TScore ) : IParsed<GameOverScore>;
 
 public sealed class GameOverScoreParser( ) : RegexParser<GameOverScore>( @"Game Over: .*? .*? .*? score (?<ct_score>\d+):(?<t_score>\d+) (after \d+ min)?" )
 {

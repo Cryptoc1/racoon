@@ -35,7 +35,7 @@ public sealed class RegexParserTests
         Assert.True( parser.PatternRegex.Options.HasFlag( RegexOptions.Singleline ) );
     }
 
-    private sealed class P : IParseable<P>;
+    private sealed class P : IParsed<P>;
     private sealed class Parser : RegexParser<P>
     {
         public Parser( ) : base( "TEST" )

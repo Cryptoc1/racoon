@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record NameChange( string NewName, Player Player ) : IParseable<NameChange>;
+public record NameChange( string NewName, Player Player ) : IParsed<NameChange>;
 
 public sealed class NameChangeParser( ParserPool parsers ) : RegexParser<NameChange>( @$"(?<Player>{PlayerParser.Pattern}) changed name to ""(?<Name>.+?)""$" )
 {

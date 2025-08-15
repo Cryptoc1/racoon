@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record PlayerDisconnected( Player Player, string Reason ) : IParseable<PlayerDisconnected>;
+public record PlayerDisconnected( Player Player, string Reason ) : IParsed<PlayerDisconnected>;
 
 public sealed class PlayerDisconnectedParser( ParserPool parsers ) : RegexParser<PlayerDisconnected>( @$"(?<Player>{PlayerParser.Pattern}) disconnected\s?(\(reason ""(?<Reason>.*)""\))?" )
 {

@@ -1,6 +1,11 @@
 <Project>
 
   <PropertyGroup>
+    <!-- Create a property to easily reference the root of the `src` folder -->
+    <ExtDirectory>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</ExtDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
     <DefaultItemExcludesInProjectFolder>$(DefaultItemExcludesInProjectFolder);packages.lock.json;package.json;package-lock.json</DefaultItemExcludesInProjectFolder>
     <Deterministic>true</Deterministic>

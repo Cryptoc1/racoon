@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public sealed record Started : IParseable<Started>;
+public sealed record Started : IParsed<Started>;
 
 public sealed class StartedParser( ) : RegexParser<Started>( @"^Started:  """"$" )
 {

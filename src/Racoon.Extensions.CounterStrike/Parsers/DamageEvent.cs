@@ -6,7 +6,7 @@ using Racoon.Parsers.Standard;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record DamageEvent( int ArmorDamage, Player Attacked, int Damage, string HitLocation, int PostHealth, int PostArmor, Player Target ) : IParseable<DamageEvent>;
+public record DamageEvent( int ArmorDamage, Player Attacked, int Damage, string HitLocation, int PostHealth, int PostArmor, Player Target ) : IParsed<DamageEvent>;
 
 // TODO: parse position (square bracket content)
 public sealed class DamageEventParser( ParserPool parsers ) : RegexParser<DamageEvent>(

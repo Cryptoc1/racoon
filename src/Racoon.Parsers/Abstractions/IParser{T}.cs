@@ -1,9 +1,9 @@
 ﻿namespace Racoon.Parsers.Abstractions;
 
 /// <summary> Defines a parser of <typeparamref name="T"/>. </summary>
-/// <typeparam name="T"> The type of <see cref="IParseable{T}"/> parsed by the implementation. </typeparam>
+/// <typeparam name="T"> The type of <see cref="IParsed{T}"/> parsed by the implementation. </typeparam>
 public interface IParser<T>
-    where T : class, IParseable<T>
+    where T : class, IParsed<T>
 {
     /// <summary> Determines whether the given <paramref name="value"/> can be parsed to an instance of <typeparamref name="T"/>. </summary>
     /// <param name="value"> A text value to match. </param>

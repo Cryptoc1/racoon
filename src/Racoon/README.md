@@ -7,3 +7,19 @@ A .NET implementation of the Source RCON Protocol.
 ## Commonly Used Types
 - [`RCONClient`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon/RCONClient.cs): Provides the functionality to connect to a RCON server.
 - [`RCONServer`](https://github.com/cryptoc1/racoon/tree/main/src/Racoon/RCONServer.cs): Provides the functionality to accept RCON messages.
+
+## Basic Usage
+
+```csharp
+using Racoon;
+using Racoon.Extensions;
+
+using var console = new RCONClient(IPAddress.Loopback, 27015, "password", new()
+{
+    AutoConnect = true,
+});
+
+var status = await console.Status();
+
+// ...
+```

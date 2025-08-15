@@ -5,7 +5,7 @@ using Racoon.Parsers.Standard;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record FragAssist( Player Assister, Player Killed ) : IParseable<FragAssist>;
+public record FragAssist( Player Assister, Player Killed ) : IParsed<FragAssist>;
 
 public sealed class FragAssistParser( ParserPool parsers ) : RegexParser<FragAssist>( @$"(?<Assister>{PlayerParser.Pattern}) assisted killing (?<Killed>{PlayerParser.Pattern})?" )
 {

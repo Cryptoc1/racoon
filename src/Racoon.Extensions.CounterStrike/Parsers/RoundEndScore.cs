@@ -4,7 +4,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record RoundEndScore( int CTScore, int TScore, string WinningTeam ) : IParseable<RoundEndScore>;
+public record RoundEndScore( int CTScore, int TScore, string WinningTeam ) : IParsed<RoundEndScore>;
 
 public sealed class RoundEndScoreParser( ) : RegexParser<RoundEndScore>( @"Team ""(?<winning_team>.+?)"" triggered ""SFUI_Notice_.+?_Win"" \(CT ""(?<ct_score>\d+)""\) \(T ""(?<t_score>\d+)""\)" )
 {

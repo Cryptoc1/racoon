@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record KillFeed( Player Killed, Player Killer, string Weapon ) : IParseable<KillFeed>;
+public record KillFeed( Player Killed, Player Killer, string Weapon ) : IParsed<KillFeed>;
 
 public sealed class KillFeedParser( ParserPool parsers ) : RegexParser<KillFeed>( @$"(?<Killer>{PlayerParser.Pattern}) killed (?<Killed>{PlayerParser.Pattern}) with ""(?<Weapon>.+?)""" )
 {

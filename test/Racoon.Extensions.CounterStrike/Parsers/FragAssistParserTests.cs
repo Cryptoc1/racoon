@@ -9,7 +9,7 @@ public sealed class FragAssistParserTests
     [MemberData( nameof( Data ) )]
     public void Parser_Matches_And_Parses( string value, FragAssist assist )
     {
-        var parser = new FragAssistParser( ParserPool.Shared );
+        var parser = new FragAssistParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -21,7 +21,7 @@ public sealed class FragAssistParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<FragAssist>();
+        var parser = ParserPool.CreateDefault( builder => builder.UseCounterStrike() ).Get<FragAssist>();
 
         Assert.NotNull( parser );
         Assert.IsType<FragAssistParser>( parser );

@@ -8,7 +8,7 @@ public sealed class NameChangeParserTests
     [MemberData( nameof( Data ) )]
     public void Parser_Matches_And_Parses( string value, NameChange change )
     {
-        var parser = new NameChangeParser( ParserPool.Shared );
+        var parser = new NameChangeParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -20,7 +20,7 @@ public sealed class NameChangeParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<NameChange>();
+        var parser = ParserPool.CreateDefault().Get<NameChange>();
 
         Assert.NotNull( parser );
         Assert.IsType<NameChangeParser>( parser );

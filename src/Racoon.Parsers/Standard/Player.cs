@@ -5,7 +5,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record Player( int ClientId, string Name, string SteamId, string Team ) : IParseable<Player>;
+public record Player( int ClientId, string Name, string SteamId, string Team ) : IParsed<Player>;
 
 public sealed class PlayerParser( ) : RegexParser<Player>( Pattern )
 {

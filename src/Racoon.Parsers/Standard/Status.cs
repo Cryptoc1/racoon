@@ -16,7 +16,7 @@ public record Status(
     string? Source,
     string? SteamID,
     string? Type,
-    string? Version ) : IParseable<Status>;
+    string? Version ) : IParsed<Status>;
 
 public record HostEndpoints( IPEndPoint Local, IPEndPoint Public );
 public record PlayerCounts( byte Bots, byte Humans, byte Max )

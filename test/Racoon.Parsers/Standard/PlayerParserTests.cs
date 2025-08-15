@@ -4,26 +4,26 @@ namespace Racoon.Parsers.Tests.Standard;
 
 public sealed class PlayerParserTests
 {
-    [Theory(DisplayName = "Parser: matches and parses")]
-    [MemberData(nameof(Data))]
-    public void Parser_Matches_And_Parses(string value, Player player)
+    [Theory( DisplayName = "Parser: matches and parses" )]
+    [MemberData( nameof( Data ) )]
+    public void Parser_Matches_And_Parses( string value, Player player )
     {
         var parser = new PlayerParser();
-        if (!parser.IsMatch(value))
+        if( !parser.IsMatch( value ) )
         {
-            Assert.Fail("Input value was not matched by parser.");
+            Assert.Fail( "Input value was not matched by parser." );
         }
 
-        Assert.Equal(player, parser.Parse(value));
+        Assert.Equal( player, parser.Parse( value ) );
     }
 
-    [Fact(DisplayName = "ParserPool: gets parser")]
-    public void ParserPool_Gets_Parser()
+    [Fact( DisplayName = "ParserPool: gets parser" )]
+    public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<Player>();
+        var parser = ParserPool.CreateDefault().Get<Player>();
 
-        Assert.NotNull(parser);
-        Assert.IsType<PlayerParser>(parser);
+        Assert.NotNull( parser );
+        Assert.IsType<PlayerParser>( parser );
     }
 
     public static readonly TheoryData<string, Player> Data = new()

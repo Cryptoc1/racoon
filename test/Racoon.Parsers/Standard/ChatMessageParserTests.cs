@@ -8,7 +8,7 @@ public sealed class ChatMessageParserTests
     [MemberData( nameof( TestData ) )]
     public void Parser_Matches_And_Parses( string value, ChatMessage message )
     {
-        var parser = new ChatMessageParser( ParserPool.Shared );
+        var parser = new ChatMessageParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -20,7 +20,7 @@ public sealed class ChatMessageParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<ChatMessage>();
+        var parser = ParserPool.CreateDefault().Get<ChatMessage>();
 
         Assert.NotNull( parser );
         Assert.IsType<ChatMessageParser>( parser );

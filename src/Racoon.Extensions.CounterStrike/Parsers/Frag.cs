@@ -5,7 +5,7 @@ using Racoon.Parsers.Standard;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record Frag( bool IsHeadshot, Player Killed, Player Killer, string Weapon ) : IParseable<Frag>;
+public record Frag( bool IsHeadshot, Player Killed, Player Killer, string Weapon ) : IParsed<Frag>;
 
 // TODO: parse position (square bracket content)
 public sealed class FragParser( ParserPool parsers ) : RegexParser<Frag>( @$"(?<Killer>{PlayerParser.Pattern}) \[.*?\] killed (?<Killed>{PlayerParser.Pattern}) \[.*?\] with ""(?<Weapon>.+?)""\s?(?<Headshot>\(headshot\))?" )

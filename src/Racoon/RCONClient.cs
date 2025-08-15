@@ -26,6 +26,12 @@ public sealed class RCONClient( IPEndPoint endpoint, string password, RCONClient
     private readonly SemaphoreSlim commandLock = new( 1, 1 );
     private readonly ConcurrentDictionary<int, RCONResponse> responseByPacketId = new();
     private readonly RCONClientOptions options = options ?? new();
+    private readonly ParserPool parsers = ParserPool.CreateDefault( builder =>
+    {
+        ArgumentNullException.ThrowIfNull( builder );
+
+        options?.OnCreatingParserPool?.Invoke( builder );
+    } );
 
     /// <summary> Indicates the current state of the underlying connection. </summary>
     public RCONClientState State => authenticationCompletion?.Task.Status switch
@@ -209,11 +215,11 @@ public sealed class RCONClient( IPEndPoint endpoint, string password, RCONClient
     /// <param name="cancellation"> A token that may cancel the command execution. </param>
     /// <exception cref="RCONCommandException"> An error occurred while sending the command. </exception>
     public async Task<T> SendCommandAsync<T>( string command, CancellationToken cancellation = default )
-        where T : class, IParseable<T>
+        where T : class, IParsed<T>
     {
         var response = await SendCommandAsync( command, cancellation ).ConfigureAwait( false );
 
-        var parser = options.Parsers.Get<T>();
+        var parser = parsers.Get<T>();
         if( !parser.IsMatch( response ) )
         {
             throw RCONCommandException.Failed( "The command response could not be parsed." );
@@ -371,8 +377,8 @@ public sealed class RCONClientOptions
     /// <summary> Indicate whether <see cref="RCONClient.ConnectAsync"/> should be invoked when invoking <see cref="RCONClient.SendCommandAsync(string, CancellationToken)"/>.  </summary>
     public bool AutoConnect { get; set; }
 
-    /// <summary> A <see cref="ParserPool"/> to be used for parsing the responses of commands.  </summary>
-    public ParserPool Parsers { get; set; } = ParserPool.Shared;
+    /// <summary> An optional delegating that configure the <see cref="ParserPool"/> to be used for parsing the responses of commands.  </summary>
+    public Action<IParserPoolBuilder>? OnCreatingParserPool { get; set; }
 
     /// <summary> A timeout to be used when connecting and executing commands. </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds( 15 );

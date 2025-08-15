@@ -9,7 +9,7 @@ public sealed class PlayerConnectedParserTests
     [MemberData( nameof( Data ) )]
     public void Parser_Matches_And_Parses( string value, PlayerConnected connected )
     {
-        var parser = new PlayerConnectedParser( ParserPool.Shared );
+        var parser = new PlayerConnectedParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -21,7 +21,7 @@ public sealed class PlayerConnectedParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<PlayerConnected>();
+        var parser = ParserPool.CreateDefault().Get<PlayerConnected>();
 
         Assert.NotNull( parser );
         Assert.IsType<PlayerConnectedParser>( parser );

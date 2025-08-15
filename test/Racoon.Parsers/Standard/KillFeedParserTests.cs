@@ -8,7 +8,7 @@ public sealed class KillFeedParserTests
     [MemberData( nameof( Data ) )]
     public void Parser_Matches_And_Parses( string value, KillFeed kill )
     {
-        var parser = new KillFeedParser( ParserPool.Shared );
+        var parser = new KillFeedParser( ParserPool.CreateDefault() );
         if( !parser.IsMatch( value ) )
         {
             Assert.Fail( "Input value was not matched by parser." );
@@ -20,7 +20,7 @@ public sealed class KillFeedParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<KillFeed>();
+        var parser = ParserPool.CreateDefault().Get<KillFeed>();
 
         Assert.NotNull( parser );
         Assert.IsType<KillFeedParser>( parser );

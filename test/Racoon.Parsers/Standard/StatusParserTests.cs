@@ -5,26 +5,26 @@ namespace Racoon.Parsers.Tests.Standard;
 
 public sealed class StatusParserTests
 {
-    [Theory(DisplayName = "Parser: matches and parses")]
-    [MemberData(nameof(Data))]
-    public void Parser_Matches_And_Parses(string value, Status status)
+    [Theory( DisplayName = "Parser: matches and parses" )]
+    [MemberData( nameof( Data ) )]
+    public void Parser_Matches_And_Parses( string value, Status status )
     {
         var parser = new StatusParser();
-        if (!parser.IsMatch(value))
+        if( !parser.IsMatch( value ) )
         {
-            Assert.Fail("Input value was not matched by parser.");
+            Assert.Fail( "Input value was not matched by parser." );
         }
 
-        Assert.Equal(status, parser.Parse(value));
+        Assert.Equal( status, parser.Parse( value ) );
     }
 
-    [Fact(DisplayName = "ParserPool: gets parser")]
-    public void ParserPool_Gets_Parser()
+    [Fact( DisplayName = "ParserPool: gets parser" )]
+    public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<Status>();
+        var parser = ParserPool.CreateDefault().Get<Status>();
 
-        Assert.NotNull(parser);
-        Assert.IsType<StatusParser>(parser);
+        Assert.NotNull( parser );
+        Assert.IsType<StatusParser>( parser );
     }
 
     public static readonly TheoryData<string, Status> Data = new()

@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Extensions.CounterStrike.Parsers;
 
-public record TeamSide( string CurrentSide, string Team ) : IParseable<TeamSide>;
+public record TeamSide( string CurrentSide, string Team ) : IParsed<TeamSide>;
 
 public sealed class TeamSideParser( ) : RegexParser<TeamSide>( @"Team playing ""(?<side>.+?)"": (?<team>.*)" )
 {

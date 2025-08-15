@@ -3,7 +3,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record MapLoading( string Map ) : IParseable<MapLoading>;
+public record MapLoading( string Map ) : IParsed<MapLoading>;
 
 public sealed class MapLoadingParser( ) : RegexParser<MapLoading>( @"^Loading map ""(?<Map>.+?)""" )
 {

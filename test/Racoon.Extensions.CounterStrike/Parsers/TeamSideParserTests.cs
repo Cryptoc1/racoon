@@ -21,7 +21,7 @@ public sealed class TeamSideParserTests
     [Fact( DisplayName = "ParserPool: gets parser" )]
     public void ParserPool_Gets_Parser( )
     {
-        var parser = new ParserPool().Get<TeamSide>();
+        var parser = ParserPool.CreateDefault( builder => builder.UseCounterStrike() ).Get<TeamSide>();
 
         Assert.NotNull( parser );
         Assert.IsType<TeamSideParser>( parser );

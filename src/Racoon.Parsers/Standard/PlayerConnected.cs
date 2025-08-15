@@ -5,7 +5,7 @@ using Racoon.Parsers.Abstractions;
 
 namespace Racoon.Parsers.Standard;
 
-public record PlayerConnected( IPEndPoint Host, Player Player ) : IParseable<PlayerConnected>;
+public record PlayerConnected( IPEndPoint Host, Player Player ) : IParsed<PlayerConnected>;
 
 public sealed class PlayerConnectedParser( ParserPool parsers ) : RegexParser<PlayerConnected>( @$"(?<Player>{PlayerParser.Pattern}) connected, address ""(?<Host>.+?):(?<Port>\d+)""" )
 {

@@ -5,7 +5,7 @@ namespace Racoon.Parsers.Abstractions;
 
 /// <summary> Base implementation of an <see cref="IParser{T}"/> that parses input via regex. </summary>
 public abstract class RegexParser<T>( [StringSyntax( StringSyntaxAttribute.Regex )] string pattern ) : IParser<T>
-    where T : class, IParseable<T>
+    where T : class, IParsed<T>
 {
     private Regex? pattern;
 
