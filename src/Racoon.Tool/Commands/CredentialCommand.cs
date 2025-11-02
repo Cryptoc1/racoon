@@ -1,0 +1,1 @@
+namespace Racoon.Tool.Commands;

@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Spectre.Console.Cli" Version="0.52.0" />
+    <PackageReference Include="Devlooped.CredentialManager" Version="2.6.1.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.53.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
