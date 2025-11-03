@@ -81,7 +81,7 @@ jobs:
           title: coverage results
 
       - name: upload coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
           name: racoon-coverage-results
@@ -133,7 +133,7 @@ jobs:
         run: dotnet pack -c Release -o dist --no-restore /p:WarningLevel=0
 
       - name: upload packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: racoon-packages
           path: dist
