@@ -58,7 +58,7 @@ jobs:
         shell: pwsh
 
       - name: upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
           name: racoon-test-results
@@ -156,7 +156,7 @@ jobs:
           global-json-file: global.json
 
       - name: download artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: racoon-packages
 
