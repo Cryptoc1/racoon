@@ -11,7 +11,6 @@ internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : A
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
-        AnsiConsole.Console.WriteLogo( settings );
 
         var accounts = AnsiConsole.Status().Spinner( Spinner.Known.Dots3 ).Start( "Loading...", context =>
         {

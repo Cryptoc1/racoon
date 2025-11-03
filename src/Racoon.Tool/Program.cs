@@ -1,9 +1,11 @@
 ﻿using GitCredentialManager;
 using Microsoft.Extensions.DependencyInjection;
 using Racoon.Tool.Commands;
+using Racoon.Tool.Interceptors;
 using Spectre.Console.Cli;
 
 var services = new ServiceCollection()
+    .AddSingleton<ICommandInterceptor, NoLogoInterceptor>()
     .AddSingleton( _ => CredentialManager.Create( typeof( Program ).FullName ) );
 
 var app = new CommandApp<ConnectCommand>( new TypeRegistrar( services ) )

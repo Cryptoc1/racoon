@@ -12,7 +12,6 @@ internal sealed class ClearCredentialsCommand( ICredentialStore credentials ) : 
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
-        AnsiConsole.Console.WriteLogo( settings );
 
         if( !settings.Confirm && !await AnsiConsole.ConfirmAsync( "Are you sure you want to clear all credentials?", true, cancellation ) )
         {

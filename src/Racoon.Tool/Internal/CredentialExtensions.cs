@@ -38,16 +38,24 @@ internal static class ICredentialStoreExtensions
         ArgumentException.ThrowIfNullOrEmpty( host );
         ArgumentException.ThrowIfNullOrEmpty( password );
 
-        if( !TryParseCredential( store, host, out var credential ) )
+        if( TryParseCredential( store, host, out var credential ) )
         {
-            credential = new RacoonCredential( DateTimeOffset.UtcNow, host );
+            store.AddOrUpdate(
+                ServiceName,
+                host,
+                JsonSerializer.Serialize( credential with
+                {
+                    Password = password,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                }, CredentialJsonContext.Default.RacoonCredential ) );
+
+            return;
         }
 
-        store.AddOrUpdate( ServiceName, host, JsonSerializer.Serialize( credential with
-        {
-            Password = password,
-            UpdatedAt = DateTimeOffset.UtcNow,
-        } ) );
+        store.AddOrUpdate(
+            ServiceName,
+            host,
+            JsonSerializer.Serialize( new RacoonCredential( DateTimeOffset.UtcNow, host, password ), CredentialJsonContext.Default.RacoonCredential ) );
     }
 
     public static bool TryGetRacoonPassword( this ICredentialStore store, string host, [NotNullWhen( true )] out string? password )
@@ -105,9 +113,8 @@ internal sealed partial class CredentialJsonContext : JsonSerializerContext;
 
 internal sealed record RacoonAccount( DateTimeOffset CreatedAt, string Host, DateTimeOffset? UpdatedAt = default );
 
-internal sealed record RacoonCredential( DateTimeOffset CreatedAt, string Host )
+internal sealed record RacoonCredential( DateTimeOffset CreatedAt, string Host, string Password = "" )
 {
-    public string Password { get; init; } = "";
     public DateTimeOffset? UpdatedAt { get; init; }
 
     public static implicit operator RacoonAccount( RacoonCredential credential ) => new( credential.CreatedAt, credential.Host )

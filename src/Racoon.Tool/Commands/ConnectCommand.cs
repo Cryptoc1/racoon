@@ -14,7 +14,6 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
-        AnsiConsole.Console.WriteLogo( settings );
 
         var host = await ResolveHost( settings.Host );
         if( host is null )

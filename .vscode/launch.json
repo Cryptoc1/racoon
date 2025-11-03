@@ -9,6 +9,10 @@
       "env": {
         "DOTNET_ENVIRONMENT": "Development"
       },
+      "args": [
+        "creds",
+        "list"
+      ],
       "cwd": "${workspaceFolder}/src/Racoon.Tool",
       "justMyCode": true,
       "preLaunchTask": "${defaultBuildTask}",

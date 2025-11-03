@@ -12,7 +12,6 @@ internal sealed class RemoveCredentialCommand( ICredentialStore credentials ) : 
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
-        AnsiConsole.Console.WriteLogo( settings );
 
         if( !settings.Confirm && !await AnsiConsole.ConfirmAsync( $"Are you sure you want to remove the credential for '{settings.Host}'?", true, cancellation ) )
         {
