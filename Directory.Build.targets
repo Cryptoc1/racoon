@@ -26,6 +26,7 @@
 
   <Target Name="SetVersion" AfterTargets="MinVer">
     <PropertyGroup>
+      <AssemblyVersion>$(FileVersion)</AssemblyVersion>
       <InformationalVersion>$(PackageVersion)</InformationalVersion>
       <InformationalVersion Condition=" '$(MinVerBuildMetadata)' != '' ">$(InformationalVersion)+$(MinVerBuildMetadata)</InformationalVersion>
       <Version>$(PackageVersion)</Version>

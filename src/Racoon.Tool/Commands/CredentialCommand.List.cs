@@ -5,9 +5,9 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Commands;
 
-internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : AsyncCommand<ToolSettings>
+internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : Command<ToolSettings>
 {
-    public override Task<int> ExecuteAsync( CommandContext context, ToolSettings settings, CancellationToken cancellation )
+    public override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
@@ -34,6 +34,6 @@ internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : A
         } );
 
         AnsiConsole.Write( accounts );
-        return Task.FromResult( 0 );
+        return 0;
     }
 }

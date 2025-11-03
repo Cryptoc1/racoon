@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Racoon.Tool.Commands;
 using Racoon.Tool.Interceptors;
+using Racoon.Tool.Internal;
 using Spectre.Console.Cli;
 
 var services = new ServiceCollection()
@@ -16,18 +17,23 @@ app.Configure( options =>
     options.AddBranch( "creds", creds =>
     {
         creds.AddCommand<ClearCredentialsCommand>( "clear" )
-            .WithDescription( "Clear all stored credentials." );
+            .WithDescription( "Clear all saved credentials." );
 
         creds.AddCommand<ListCredentialsCommand>( "list" )
             .WithAlias( "ls" )
-            .WithDescription( "List stored credentials." );
+            .WithDescription( "List saved credentials." );
 
         creds.AddCommand<RemoveCredentialCommand>( "remove" )
             .WithAlias( "rm" )
-            .WithDescription( "Remove a stored credential." );
+            .WithDescription( "Remove a saved credential." );
+
+        creds.SetDefaultCommand<ListCredentialsCommand>();
+        creds.SetDescription( "Manage saved credentials." );
     } );
 
     options.SetApplicationName( "racoon" );
+    options.SetApplicationVersion( ToolVersion.Current );
+
     options.PropagateExceptions();
 } );
 
