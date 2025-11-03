@@ -24,8 +24,7 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
 
         var password = ResolvePassword(
             credentials,
-            settings.Host,
-            settings.Password );
+            settings );
 
         using var console = new RCONClient(
             host,
@@ -109,17 +108,19 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         }
     }
 
-    private static string ResolvePassword( ICredentialStore credentials, string host, string? password )
+    private static string ResolvePassword( ICredentialStore credentials, ConnectSettings settings )
     {
         ArgumentNullException.ThrowIfNull( credentials );
-        ArgumentException.ThrowIfNullOrWhiteSpace( host );
+        ArgumentNullException.ThrowIfNull( settings );
+        ArgumentException.ThrowIfNullOrWhiteSpace( settings.Host );
 
-        if( !string.IsNullOrWhiteSpace( password ) )
+        if( !string.IsNullOrWhiteSpace( settings.Password ) )
         {
-            return password;
+            return settings.Password;
         }
 
-        if( credentials.TryGetRacoonPassword( host, out password ) )
+        // NOTE: if the user requested to save creds, we should always prompt for the password
+        if( !settings.SaveCredentials && credentials.TryGetRacoonPassword( settings.Host, out var password ) )
         {
             return password;
         }
@@ -172,9 +173,9 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
 
 internal static class ShellExitCode
 {
-    public const int Disconnected = -50;
-    public const int FailedToConnect = -100;
-    public const int InvalidHost = -75;
+    public const int Disconnected = 76;
+    public const int FailedToConnect = 69;
+    public const int InvalidHost = 68;
 }
 
 internal sealed class ConnectSettings : ToolSettings

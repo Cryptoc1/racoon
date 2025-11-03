@@ -16,7 +16,7 @@ internal sealed class ClearCredentialsCommand( ICredentialStore credentials ) : 
         if( !settings.Confirm && !await AnsiConsole.ConfirmAsync( "Are you sure you want to clear all credentials?", true, cancellation ) )
         {
             AnsiConsole.MarkupLine( $"[bold {RCONColor.Error}]Operation cancelled by user.[/]" );
-            return -1;
+            return 1;
         }
 
         var removed = AnsiConsole.Status().Spinner( Spinner.Known.Dots3 ).Start( "Clearing...", context =>
