@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Interceptors;
 
-internal sealed class NoLogoInterceptor : ICommandInterceptor
+internal sealed class NoLogoInterceptor( IAnsiConsole stdout ) : ICommandInterceptor
 {
     private static readonly bool NoLogo = DefaultNoLogo();
     private static readonly FigletText Logo = new FigletText( "Racoon" ).Color( Color.MediumSpringGreen );
@@ -25,6 +25,6 @@ internal sealed class NoLogoInterceptor : ICommandInterceptor
             return;
         }
 
-        AnsiConsole.Write( Logo );
+        stdout.Write( Logo );
     }
 }

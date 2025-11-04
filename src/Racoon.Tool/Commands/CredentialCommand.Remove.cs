@@ -6,26 +6,26 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Commands;
 
-internal sealed class RemoveCredentialCommand( ICredentialStore credentials ) : AsyncCommand<RemoveCredentialSettings>
+internal sealed class RemoveCredentialCommand( ICredentialStore credentials, IAnsiConsole stdout ) : AsyncCommand<RemoveCredentialSettings>
 {
     public override async Task<int> ExecuteAsync( CommandContext context, RemoveCredentialSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
 
-        if( !settings.Confirm && !await AnsiConsole.ConfirmAsync( $"Are you sure you want to remove the credential for '{settings.Host}'?", true, cancellation ) )
+        if( !settings.Confirm && !await stdout.ConfirmAsync( $"Are you sure you want to remove the credential for '{settings.Host}'?", true, cancellation ) )
         {
-            AnsiConsole.MarkupLine( $"[bold {RCONColor.Error}]Operation cancelled by user.[/]" );
+            stdout.MarkupLine( $"[bold {RCONColor.Error}]Operation cancelled by user.[/]" );
             return 1;
         }
 
         if( !credentials.RemoveRacoon( settings.Host ) )
         {
-            AnsiConsole.MarkupLine( $"[bold {RCONColor.Warning}]Credential does not exist.[/]" );
+            stdout.MarkupLine( $"[bold {RCONColor.Warning}]Credential does not exist.[/]" );
             return 1;
         }
 
-        AnsiConsole.MarkupLine( $"[bold {RCONColor.Success}]Credential has been removed.[/]" );
+        stdout.MarkupLine( $"[bold {RCONColor.Success}]Credential has been removed.[/]" );
         return 0;
     }
 }

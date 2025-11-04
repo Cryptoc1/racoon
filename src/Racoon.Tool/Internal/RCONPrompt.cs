@@ -101,12 +101,20 @@ internal sealed class RCONPrompt( RCONStatus status, int capacity = 1024 ) : IDi
 
     public void AddHistory( string command )
     {
+        ArgumentException.ThrowIfNullOrEmpty( command );
+
         if( history.Count == history.Capacity )
         {
             history.RemoveAt( 0 );
         }
 
         history.Add( command );
+    }
+
+    public void Reset( )
+    {
+        history.Clear();
+        Error = false;
     }
 
     private void WritePrompt( IAnsiConsole console ) => console.Write( new Markup( $"[bold {(Error ? RCONColor.Error : RCONColor.Success)}]{(Error ? '!' : '@')}[/] [bold]{status.Hostname}[/]> " ) );

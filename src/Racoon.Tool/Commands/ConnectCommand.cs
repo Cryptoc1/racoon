@@ -8,21 +8,22 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Commands;
 
-internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncCommand<ConnectSettings>
+internal sealed class ConnectCommand( IAnsiConsole stdout, ICredentialStore credentials ) : AsyncCommand<ConnectSettings>
 {
     public override async Task<int> ExecuteAsync( CommandContext context, ConnectSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
 
-        var host = await ResolveHost( settings.Host );
+        var host = await ResolveHost( stdout, settings.Host );
         if( host is null )
         {
-            AnsiConsole.Write( $"[bold {RCONColor.Error}]<!>[/] Provided host could not be resolved." );
+            stdout.Write( $"[bold {RCONColor.Error}]<!>[/] Provided host could not be resolved." );
             return ShellExitCode.InvalidHost;
         }
 
         var password = ResolvePassword(
+            stdout,
             credentials,
             settings );
 
@@ -35,7 +36,7 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         using var aborted = CancellationTokenSource.CreateLinkedTokenSource( cancellation );
         console.Disconnected += ( _, _ ) => aborted.Cancel();
 
-        if( !await TryConnect( console ) )
+        if( !await TryConnect( stdout, console, settings.Retry ) )
         {
             password = default;
             return ShellExitCode.FailedToConnect;
@@ -47,36 +48,41 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         }
 
         password = default;
-        WritePromptHelp( true );
+        WritePromptHelp( stdout, true );
 
         using var prompt = new RCONPrompt( await console.Status( aborted.Token ) );
         while( !aborted.IsCancellationRequested && console.State is RCONClientState.Authenticated )
         {
-            var command = await prompt.ShowAsync( AnsiConsole.Console, aborted.Token );
+            var command = await prompt.ShowAsync( stdout, aborted.Token );
             if( command[ 0 ] is not ':' )
             {
                 try
                 {
-                    var result = await console.SendCommandAsync( command, aborted.Token );
-                    AnsiConsole.WriteLine( result );
+                    var result = await console.SendCommandAsync(
+                        command,
+                        aborted.Token );
 
-                    prompt.Error = result.StartsWith( "unknown command", StringComparison.OrdinalIgnoreCase );
+                    prompt.Error = result.StartsWith(
+                        "unknown command",
+                        StringComparison.OrdinalIgnoreCase );
+
+                    stdout.WriteLine( result );
                 }
                 catch( RCONCommandException exception )
                 {
-                    AnsiConsole.WriteException( exception );
                     prompt.Error = true;
+                    stdout.WriteException( exception );
                 }
             }
 
             if( command.Equals( ":clear", StringComparison.OrdinalIgnoreCase ) )
             {
-                AnsiConsole.Clear();
+                stdout.Clear();
             }
 
             if( command.Equals( ":help", StringComparison.OrdinalIgnoreCase ) )
             {
-                WritePromptHelp();
+                WritePromptHelp( stdout );
             }
 
             if( command.Equals( ":q", StringComparison.OrdinalIgnoreCase ) )
@@ -84,31 +90,40 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
                 return 0;
             }
 
+            if( command.Equals( ":reset", StringComparison.OrdinalIgnoreCase ) )
+            {
+                prompt.Reset();
+
+                stdout.MarkupLine( $"[bold {RCONColor.Success}]Prompt has been reset.[/]" );
+                continue;
+            }
+
             prompt.AddHistory( command );
         }
 
         return ShellExitCode.Disconnected;
 
-        static void WritePromptHelp( bool padding = false )
+        static void WritePromptHelp( IAnsiConsole stdout, bool padding = false )
         {
             if( padding )
             {
-                AnsiConsole.WriteLine();
+                stdout.WriteLine();
             }
 
-            AnsiConsole.MarkupLine( $"Use [bold {RCONColor.Hint}]:q[/] to exit." );
-            AnsiConsole.MarkupLine( $"Use [bold {RCONColor.Hint}]:clear[/] to clear the screen." );
-            AnsiConsole.MarkupLine( $"Use [bold {RCONColor.Hint}]arrow up[/]/[bold tan]arrow down[/] to traverse history." );
-            AnsiConsole.MarkupLine( $"Use [bold {RCONColor.Hint}]:help[/] to display this help text." );
+            stdout.MarkupLine( $"Use [bold {RCONColor.Hint}]:q[/] to exit." );
+            stdout.MarkupLine( $"Use [bold {RCONColor.Hint}]:clear[/] to clear the screen." );
+            stdout.MarkupLine( $"Use [bold {RCONColor.Hint}]:reset[/] to clear prompt history." );
+            stdout.MarkupLine( $"Use [bold {RCONColor.Hint}]arrow up[/]/[bold tan]arrow down[/] to traverse history." );
+            stdout.MarkupLine( $"Use [bold {RCONColor.Hint}]:help[/] to display this help text." );
 
             if( padding )
             {
-                AnsiConsole.WriteLine();
+                stdout.WriteLine();
             }
         }
     }
 
-    private static string ResolvePassword( ICredentialStore credentials, ConnectSettings settings )
+    private static string ResolvePassword( IAnsiConsole stdout, ICredentialStore credentials, ConnectSettings settings )
     {
         ArgumentNullException.ThrowIfNull( credentials );
         ArgumentNullException.ThrowIfNull( settings );
@@ -125,10 +140,10 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
             return password;
         }
 
-        return AnsiConsole.Prompt( new TextPrompt<string>( $"Password>" ).Secret() );
+        return stdout.Prompt( new TextPrompt<string>( $"Password>" ).Secret() );
     }
 
-    private static async Task<IPAddress?> ResolveHost( string host )
+    private static async Task<IPAddress?> ResolveHost( IAnsiConsole stdout, string host )
     {
         if( IPAddress.TryParse( host, out var address ) )
         {
@@ -142,7 +157,7 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         }
         else if( addresses.Length > 1 )
         {
-            return AnsiConsole.Prompt(
+            return stdout.Prompt(
                 new SelectionPrompt<IPAddress>()
                     .Title( $"Host [green]{host}[/] resolved to multiple addresses>" )
                     .AddChoices( addresses ) );
@@ -151,11 +166,11 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         return default;
     }
 
-    private static async Task<bool> TryConnect( RCONClient console, int retry = default )
+    private static async Task<bool> TryConnect( IAnsiConsole stdout, RCONClient console, int retries, int retry = default )
     {
         try
         {
-            await AnsiConsole.Status().Spinner( Spinner.Known.Dots3 ).StartAsync( "Connecting...", async context =>
+            await stdout.Status().Spinner( Spinner.Known.Dots3 ).StartAsync( "Connecting...", async context =>
             {
                 await Task.Delay( retry is 0 ? 250 : 1250 );
                 await console.ConnectAsync();
@@ -163,8 +178,13 @@ internal sealed class ConnectCommand( ICredentialStore credentials ) : AsyncComm
         }
         catch( RCONException )
         {
-            return AnsiConsole.Confirm( $"[bold {RCONColor.Error}]<!>[/] Failed to connect to the host, retry?" )
-                && await TryConnect( console, ++retry );
+            if( retry < retries )
+            {
+                return stdout.Confirm( $"[bold {RCONColor.Error}]<!>[/] Failed to connect to the host, retry?" )
+                    && await TryConnect( stdout, console, retries, ++retry );
+            }
+
+            throw;
         }
 
         return true;
@@ -192,6 +212,11 @@ internal sealed class ConnectSettings : ToolSettings
     [DefaultValue( ( ushort )27015 )]
     [Description( "The remote port to connect to" )]
     public ushort Port { get; init; } = 27015;
+
+    [CommandOption( "-r|--retry" )]
+    [DefaultValue( 3 )]
+    [Description( "The # of retries to make when attempting to connect." )]
+    public int Retry { get; init; } = 3;
 
     [CommandOption( "-s|--save" )]
     [DefaultValue( false )]

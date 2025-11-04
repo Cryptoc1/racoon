@@ -6,20 +6,20 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Commands;
 
-internal sealed class ClearCredentialsCommand( ICredentialStore credentials ) : AsyncCommand<ClearCredentialsSettings>
+internal sealed class ClearCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : AsyncCommand<ClearCredentialsSettings>
 {
     public override async Task<int> ExecuteAsync( CommandContext context, ClearCredentialsSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
 
-        if( !settings.Confirm && !await AnsiConsole.ConfirmAsync( "Are you sure you want to clear all credentials?", true, cancellation ) )
+        if( !settings.Confirm && !await stdout.ConfirmAsync( "Are you sure you want to clear all credentials?", true, cancellation ) )
         {
-            AnsiConsole.MarkupLine( $"[bold {RCONColor.Error}]Operation cancelled by user.[/]" );
+            stdout.MarkupLine( $"[bold {RCONColor.Error}]Operation cancelled by user.[/]" );
             return 1;
         }
 
-        var removed = AnsiConsole.Status().Spinner( Spinner.Known.Dots3 ).Start( "Clearing...", context =>
+        var removed = stdout.Status().Spinner( Spinner.Known.Dots3 ).Start( "Clearing...", context =>
         {
             var count = 0;
             foreach( var account in credentials.GetRacoonAccounts() )
@@ -38,11 +38,11 @@ internal sealed class ClearCredentialsCommand( ICredentialStore credentials ) : 
 
         if( removed is 0 )
         {
-            AnsiConsole.MarkupLine( $"[bold {RCONColor.Warning}]Nothing to do.[/]" );
+            stdout.MarkupLine( $"[bold {RCONColor.Warning}]Nothing to do.[/]" );
             return 0;
         }
 
-        AnsiConsole.MarkupLine( $"[bold {RCONColor.Success}]Credentials have been cleared[/]. (removed: {removed})" );
+        stdout.MarkupLine( $"[bold {RCONColor.Success}]Credentials have been cleared[/]. (removed: {removed})" );
         return 0;
     }
 }

@@ -5,14 +5,14 @@ using Spectre.Console.Cli;
 
 namespace Racoon.Tool.Commands;
 
-internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : Command<ToolSettings>
+internal sealed class ListCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : Command<ToolSettings>
 {
     public override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
 
-        var accounts = AnsiConsole.Status().Spinner( Spinner.Known.Dots3 ).Start( "Loading...", context =>
+        var accounts = stdout.Status().Spinner( Spinner.Known.Dots3 ).Start( "Loading...", context =>
         {
             var tree = new Tree( "" );
             foreach( var account in credentials.GetRacoonAccounts() )
@@ -33,7 +33,7 @@ internal sealed class ListCredentialsCommand( ICredentialStore credentials ) : C
             return tree;
         } );
 
-        AnsiConsole.Write( accounts );
+        stdout.Write( accounts );
         return 0;
     }
 }
