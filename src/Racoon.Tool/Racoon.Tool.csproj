@@ -6,7 +6,7 @@
     <MinVerTagPrefix>tool-v</MinVerTagPrefix>
     <PackAsTool>true</PackAsTool>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <TargetFramework>net9.0</TargetFramework>
+    <PublishReadyToRun>true</PublishReadyToRun>
     <ToolCommandName>racoon</ToolCommandName>
     <TrimMode>partial</TrimMode>
   </PropertyGroup>
@@ -18,7 +18,14 @@
   <ItemGroup>
     <PackageReference Include="Devlooped.CredentialManager" Version="2.6.1.1" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.11" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>

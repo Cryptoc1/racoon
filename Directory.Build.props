@@ -28,7 +28,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-    <TargetFrameworks>net9.0</TargetFrameworks>
+    <TargetFrameworks>net9.0;net10.0;</TargetFrameworks>
   </PropertyGroup>
 
   <!-- Git Versioning + Metadata -->

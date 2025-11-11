@@ -27,7 +27,9 @@ jobs:
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
-          global-json-file: global.json
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -48,7 +50,9 @@ jobs:
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
-          global-json-file: global.json
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -124,7 +128,9 @@ jobs:
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
-          global-json-file: global.json
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -144,16 +150,11 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v5
-        with:
-          sparse-checkout: global.json
-
       - name: setup dotnet
         uses: actions/setup-dotnet@v5
         with:
           cache: false
-          global-json-file: global.json
+          dotnet-version: 10.0.x
 
       - name: download artifact
         uses: actions/download-artifact@v6

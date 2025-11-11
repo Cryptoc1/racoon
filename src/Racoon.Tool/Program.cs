@@ -9,7 +9,10 @@ var services = new ServiceCollection()
     .AddSingleton<ICommandInterceptor, NoLogoInterceptor>()
     .AddSingleton( _ => CredentialManager.Create( typeof( Program ).FullName ) );
 
+#pragma warning disable IL3050
 var app = new CommandApp<ConnectCommand>( new TypeRegistrar( services ) )
+#pragma warning restore IL3050
+
     .WithDescription( "Connect to an RCON server." );
 
 app.Configure( options =>

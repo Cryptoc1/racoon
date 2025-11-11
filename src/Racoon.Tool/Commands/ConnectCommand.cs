@@ -71,7 +71,10 @@ internal sealed class ConnectCommand( IAnsiConsole stdout, ICredentialStore cred
                 catch( RCONCommandException exception )
                 {
                     prompt.Error = true;
+
+#pragma warning disable IL3050
                     stdout.WriteException( exception );
+#pragma warning restore IL3050
                 }
             }
 
