@@ -57,8 +57,12 @@ jobs:
       - name: restore
         run: dotnet restore --locked-mode
 
-      - name: test
-        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" --results-directory TestResults --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
+      - name: test (net9.0)
+        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net9.0 --no-restore --results-directory TestResults/net9.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
+        shell: pwsh
+
+      - name: test (net10.0)
+        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net10.0 --no-restore --results-directory TestResults/net10.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
         shell: pwsh
 
       - name: upload test results
