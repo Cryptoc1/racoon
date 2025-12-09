@@ -21,7 +21,7 @@
     <AdditionalFiles Include="$(ExtDirectory)\.editorconfig" Visible="false" />
 
     <!-- Include reference to .NET/C# code analyzers -->
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.100" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.101" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="SetVersion" AfterTargets="MinVer">
