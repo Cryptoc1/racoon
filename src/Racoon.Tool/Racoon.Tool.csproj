@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Devlooped.CredentialManager" Version="2.6.1.1" />
+    <PackageReference Include="Devlooped.CredentialManager" Version="2.7.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
   </ItemGroup>
 
