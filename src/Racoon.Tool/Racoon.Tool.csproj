@@ -16,16 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Devlooped.CredentialManager" Version="2.6.1.1" />
+    <PackageReference Include="Devlooped.CredentialManager" Version="2.7.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.13" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.14" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.4" />
   </ItemGroup>
 
   <ItemGroup>
