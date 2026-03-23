@@ -73,7 +73,7 @@ jobs:
           path: TestResults
 
       - name: report test results
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: test results
