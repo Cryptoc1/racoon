@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Devlooped.CredentialManager" Version="2.7.0" />
-    <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.55.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
