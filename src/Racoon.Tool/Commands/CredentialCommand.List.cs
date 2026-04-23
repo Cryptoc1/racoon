@@ -1,4 +1,4 @@
-using GitCredentialManager;
+﻿using GitCredentialManager;
 using Racoon.Tool.Internal;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -7,7 +7,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ListCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : Command<ToolSettings>
 {
-    public override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
+    protected override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );

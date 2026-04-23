@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using GitCredentialManager;
 using Racoon.Tool.Internal;
 using Spectre.Console;
@@ -8,7 +8,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ClearCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : AsyncCommand<ClearCredentialsSettings>
 {
-    public override async Task<int> ExecuteAsync( CommandContext context, ClearCredentialsSettings settings, CancellationToken cancellation )
+    protected override async Task<int> ExecuteAsync( CommandContext context, ClearCredentialsSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );

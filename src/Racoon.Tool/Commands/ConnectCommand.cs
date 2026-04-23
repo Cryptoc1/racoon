@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Net;
 using GitCredentialManager;
 using Racoon.Extensions;
@@ -10,7 +10,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ConnectCommand( IAnsiConsole stdout, ICredentialStore credentials ) : AsyncCommand<ConnectSettings>
 {
-    public override async Task<int> ExecuteAsync( CommandContext context, ConnectSettings settings, CancellationToken cancellation )
+    protected override async Task<int> ExecuteAsync( CommandContext context, ConnectSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
