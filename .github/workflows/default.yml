@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: setup dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: setup dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
@@ -128,7 +128,7 @@ jobs:
           fetch-tags: true
 
       - name: setup dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           cache: true
           cache-dependency-path: ./**/packages.lock.json
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: setup dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           cache: false
           dotnet-version: 10.0.x
