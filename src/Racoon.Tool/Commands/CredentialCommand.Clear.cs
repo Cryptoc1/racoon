@@ -8,7 +8,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ClearCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : AsyncCommand<ClearCredentialsSettings>
 {
-    protected override async Task<int> ExecuteAsync( CommandContext context, ClearCredentialsSettings settings, CancellationToken cancellation )
+    public override async Task<int> ExecuteAsync( CommandContext context, ClearCredentialsSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );

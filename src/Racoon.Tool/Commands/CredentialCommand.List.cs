@@ -7,7 +7,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ListCredentialsCommand( ICredentialStore credentials, IAnsiConsole stdout ) : Command<ToolSettings>
 {
-    protected override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
+    public override int Execute( CommandContext context, ToolSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );

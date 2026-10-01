@@ -10,7 +10,7 @@ namespace Racoon.Tool.Commands;
 
 internal sealed class ConnectCommand( IAnsiConsole stdout, ICredentialStore credentials ) : AsyncCommand<ConnectSettings>
 {
-    protected override async Task<int> ExecuteAsync( CommandContext context, ConnectSettings settings, CancellationToken cancellation )
+    public override async Task<int> ExecuteAsync( CommandContext context, ConnectSettings settings, CancellationToken cancellation )
     {
         ArgumentNullException.ThrowIfNull( context );
         ArgumentNullException.ThrowIfNull( settings );
