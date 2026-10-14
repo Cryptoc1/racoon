@@ -25,11 +25,18 @@ jobs:
       - name: setup dotnet
         uses: actions/setup-dotnet@v6
         with:
-          cache: true
-          cache-dependency-path: ./**/packages.lock.json
+          cache: false
           dotnet-version: |
             9.0.x
             10.0.x
+
+      - name: setup dotnet (11.0)
+        uses: actions/setup-dotnet@v6
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          dotnet-quality: preview
+          dotnet-version: 11.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -48,11 +55,18 @@ jobs:
       - name: setup dotnet
         uses: actions/setup-dotnet@v6
         with:
-          cache: true
-          cache-dependency-path: ./**/packages.lock.json
+          cache: false
           dotnet-version: |
             9.0.x
             10.0.x
+
+      - name: setup dotnet (11.0)
+        uses: actions/setup-dotnet@v6
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          dotnet-quality: preview
+          dotnet-version: 11.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -63,6 +77,10 @@ jobs:
 
       - name: test (net10.0)
         run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net10.0 --no-restore --results-directory TestResults/net10.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
+        shell: pwsh
+
+      - name: test (net11.0)
+        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net11.0 --no-restore --results-directory TestResults/net11.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
         shell: pwsh
 
       - name: upload test results
@@ -130,11 +148,18 @@ jobs:
       - name: setup dotnet
         uses: actions/setup-dotnet@v6
         with:
-          cache: true
-          cache-dependency-path: ./**/packages.lock.json
+          cache: false
           dotnet-version: |
             9.0.x
             10.0.x
+
+      - name: setup dotnet (11.0)
+        uses: actions/setup-dotnet@v6
+        with:
+          cache: true
+          cache-dependency-path: ./**/packages.lock.json
+          dotnet-quality: preview
+          dotnet-version: 11.0.x
 
       - name: restore
         run: dotnet restore --locked-mode
@@ -158,7 +183,8 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           cache: false
-          dotnet-version: 10.0.x
+          dotnet-quality: preview
+          dotnet-version: 11.0.x
 
       - name: download artifact
         uses: actions/download-artifact@v8
