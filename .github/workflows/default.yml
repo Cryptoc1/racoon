@@ -22,13 +22,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v7
 
-      - name: setup dotnet
+      - name: setup dotnet (10.0)
         uses: actions/setup-dotnet@v6
         with:
           cache: false
-          dotnet-version: |
-            9.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       - name: setup dotnet (11.0)
         uses: actions/setup-dotnet@v6
@@ -52,13 +50,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v7
 
-      - name: setup dotnet
+      - name: setup dotnet (10.0)
         uses: actions/setup-dotnet@v6
         with:
           cache: false
-          dotnet-version: |
-            9.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       - name: setup dotnet (11.0)
         uses: actions/setup-dotnet@v6
@@ -70,10 +66,6 @@ jobs:
 
       - name: restore
         run: dotnet restore --locked-mode
-
-      - name: test (net9.0)
-        run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net9.0 --no-restore --results-directory TestResults/net9.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
-        shell: pwsh
 
       - name: test (net10.0)
         run: foreach( $project in Get-ChildItem "Racoon.*Tests.csproj" -Recurse ) { dotnet test "$($project.FullName)" -f net10.0 --no-restore --results-directory TestResults/net10.0 --logger "trx;logFileName=$($project.BaseName).trx" --collect:"XPlat Code Coverage" /p:WarningLevel=0 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.DeterministicReport=true }
@@ -145,13 +137,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: setup dotnet
+      - name: setup dotnet (10.0)
         uses: actions/setup-dotnet@v6
         with:
           cache: false
-          dotnet-version: |
-            9.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       - name: setup dotnet (11.0)
         uses: actions/setup-dotnet@v6
